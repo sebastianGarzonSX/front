@@ -1,26 +1,125 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* ─────────────────────────────────────────────
+   DESIGN TOKENS — Dashboard Diana
+   ───────────────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Paleta de color */
+  --color-canvas:     #0A0A0A;
+  --color-surface:    #111111;
+  --color-surface-2:  #181818;
+  --color-border:     #222222;
+  --color-border-2:   #2D2D2D;
+
+  --color-ink:        #F2EDE8;
+  --color-ink-2:      #9A9088;
+  --color-ink-3:      #5C5650;
+
+  --color-gold:       #C9973A;
+  --color-gold-dim:   #8A6520;
+  --color-gold-glow:  #C9973A26;
+
+  --color-green:      #3DAB6E;
+  --color-green-dim:  #1E5537;
+  --color-red:        #D95F5F;
+  --color-red-dim:    #6B2626;
+
+  /* Tipografía */
+  --font-display:     var(--font-fraunces), Georgia, serif;
+  --font-sans:        var(--font-dm-sans), system-ui, sans-serif;
+  --font-mono:        var(--font-jetbrains), monospace;
+
+  /* Radios */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─────────────────────────────────────────────
+   RESET & BASE
+   ───────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  height: 100%;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+  font-family: var(--font-sans);
+  background: var(--color-canvas);
+}
+
+/* ─────────────────────────────────────────────
+   SCROLLBAR PERSONALIZADO
+   ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border-2); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-ink-3); }
+
+/* ─────────────────────────────────────────────
+   SELECCIÓN DE TEXTO
+   ───────────────────────────────────────────── */
+::selection {
+  background: var(--color-gold-glow);
+  color: var(--color-gold);
+}
+
+/* ─────────────────────────────────────────────
+   ANIMACIONES GLOBALES
+   ───────────────────────────────────────────── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes number-count {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease both;
+}
+
+/* Retardo escalonado para listas */
+.stagger-1 { animation-delay: 60ms; }
+.stagger-2 { animation-delay: 120ms; }
+.stagger-3 { animation-delay: 180ms; }
+.stagger-4 { animation-delay: 240ms; }
+.stagger-5 { animation-delay: 300ms; }
+
+/* Skeleton loader */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 0%,
+    var(--color-surface-2) 50%,
+    var(--color-surface) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease infinite;
+  border-radius: var(--radius-sm);
 }
