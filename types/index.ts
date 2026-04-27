@@ -87,11 +87,12 @@ export interface Opportunity {
  */
 export interface DashboardKPIs {
   leads: {
-    total: number               // Total de leads en DB
-    this_month: number          // Leads creados en el mes actual
-    prev_month: number          // Leads del mes anterior (para calcular delta)
-    by_stage: StageCount[]      // Distribución por stage
-    by_source: SourceCount[]    // Distribución por fuente
+    total: number                            // Total de leads en DB
+    this_month: number                       // Leads creados en el mes actual
+    prev_month: number                       // Leads del mes anterior (para calcular delta)
+    by_stage: StageCount[]                   // Distribución por stage
+    by_source: SourceCount[]                 // Fuente broad de GHL ("Facebook Ads", etc.)
+    by_attribution: AttributionSourceCount[] // Fuente fina: nombre del anuncio > utm > broad
   }
   opportunities: {
     total_open: number          // Oportunidades con status='open'
@@ -112,7 +113,13 @@ export interface StageCount {
 
 export interface SourceCount {
   source: string
-  count: number
+  count:  number
+}
+
+export interface AttributionSourceCount {
+  source:      string
+  source_type: 'ad' | 'utm' | 'broad'  // 'ad' = anuncio específico, 'utm' = fuente UTM, 'broad' = campo GHL
+  count:       number
 }
 
 // ---------------------------------------------------------------------------
@@ -227,13 +234,16 @@ export type Permission = keyof (typeof ROLE_PERMISSIONS)['admin']
 
 /** ENDPOINT: GET /api/reports/attribution?since=YYYY-MM-DD&until=YYYY-MM-DD */
 
+export type MetaAdStatus = 'ACTIVE' | 'PAUSED' | 'ARCHIVED' | 'DELETED' | 'UNKNOWN'
+
 export interface AttributionByAd {
   attribution_ad_id:      string | null
   attribution_ad_name:    string | null
   attribution_utm_source: string | null
-  attribution_page_url:   string | null   // landing page del anuncio (de GHL)
-  thumbnail_url:          string | null   // thumbnail de la creatividad Meta
-  preview_link:           string | null   // link de vista previa del anuncio Meta
+  attribution_page_url:   string | null
+  thumbnail_url:          string | null
+  preview_link:           string | null
+  ad_status:              MetaAdStatus | null
   total_leads:            number
   conversions:            number
   revenue:                number

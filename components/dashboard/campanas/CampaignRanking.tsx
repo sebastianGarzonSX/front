@@ -12,8 +12,9 @@ interface CampaignRankingProps {
   metaEnabled:       boolean
 }
 
-type SortKey = 'roas' | 'total_leads' | 'conversions' | 'meta_spend' | 'revenue' | 'conv_rate'
-type SortDir = 'asc' | 'desc'
+type SortKey    = 'roas' | 'total_leads' | 'conversions' | 'meta_spend' | 'revenue' | 'conv_rate'
+type SortDir    = 'asc' | 'desc'
+type StatusFilter = 'all' | 'active' | 'inactive'
 
 interface EnrichedRow extends AttributionByAd {
   roas:      number
@@ -85,8 +86,9 @@ export function CampaignRanking({
   canViewFinancials,
   metaEnabled,
 }: CampaignRankingProps) {
-  const [sortKey, setSortKey] = useState<SortKey>('total_leads')
-  const [sortDir, setSortDir] = useState<SortDir>('desc')
+  const [sortKey,      setSortKey]      = useState<SortKey>('total_leads')
+  const [sortDir,      setSortDir]      = useState<SortDir>('desc')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
   function toggleSort(key: SortKey) {
     if (key === sortKey) setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'))
@@ -100,13 +102,26 @@ export function CampaignRanking({
     conv_rate: calcConvRate(r.conversions, r.total_leads),
   }))
 
-  const sorted = [...enriched].sort((a, b) => {
+  // Aplicar filtro de estado
+  const filtered = enriched.filter((r) => {
+    if (statusFilter === 'all')      return true
+    if (statusFilter === 'active')   return r.ad_status === 'ACTIVE'
+    if (statusFilter === 'inactive') return r.ad_status !== 'ACTIVE' && r.ad_status !== null
+    return true
+  })
+
+  const sorted = [...filtered].sort((a, b) => {
     const av = a[sortKey] as number
     const bv = b[sortKey] as number
     return sortDir === 'desc' ? bv - av : av - bv
   })
 
   const maxLeads = Math.max(...enriched.map((r) => r.total_leads), 1)
+
+  // Conteos para las pills de filtro
+  const countActive   = enriched.filter((r) => r.ad_status === 'ACTIVE').length
+  const countInactive = enriched.filter((r) => r.ad_status !== 'ACTIVE' && r.ad_status !== null).length
+  const hasStatusData = enriched.some((r) => r.ad_status !== null && r.ad_status !== 'UNKNOWN')
 
   const visibleCols = COLS.filter(
     (c) => (!c.financial || canViewFinancials) && (!c.meta || metaEnabled)
@@ -130,7 +145,7 @@ export function CampaignRanking({
     )
   }
 
-  if (sorted.length === 0) {
+  if (sorted.length === 0 && enriched.length === 0) {
     return (
       <div className="py-14 text-center">
         <p className="text-xs text-[var(--color-ink-3)]">Sin datos de atribución para el período.</p>
@@ -142,6 +157,47 @@ export function CampaignRanking({
   }
 
   return (
+    <div>
+      {/* Filtro de estado — solo se muestra si hay datos de status de Meta */}
+      {hasStatusData && (
+        <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+          {(
+            [
+              { key: 'all',      label: 'Todos',      count: enriched.length },
+              { key: 'active',   label: 'Activos',    count: countActive   },
+              { key: 'inactive', label: 'Pausados',   count: countInactive },
+            ] as { key: StatusFilter; label: string; count: number }[]
+          ).map(({ key, label, count }) => (
+            <button
+              key={key}
+              onClick={() => setStatusFilter(key)}
+              className={`
+                flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-[var(--font-mono)]
+                transition-all duration-150
+                ${statusFilter === key
+                  ? 'bg-[var(--color-surface-2)] border border-[var(--color-border-2)] text-[var(--color-ink)]'
+                  : 'text-[var(--color-ink-3)] hover:text-[var(--color-ink-2)]'}
+              `}
+            >
+              {key === 'active' && (
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-green)] flex-shrink-0" />
+              )}
+              {key === 'inactive' && (
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-ink-3)] flex-shrink-0" />
+              )}
+              {label}
+              <span className="opacity-60">{count}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {sorted.length === 0 && (
+        <p className="text-xs text-[var(--color-ink-3)] text-center py-8">
+          Sin anuncios {statusFilter === 'active' ? 'activos' : 'pausados'} en el período.
+        </p>
+      )}
+
     <div className="overflow-x-auto -mx-5 -mb-5">
       <table className="w-full text-xs min-w-[480px]">
         <thead>
@@ -223,9 +279,18 @@ export function CampaignRanking({
 
                     {/* Name + source + links */}
                     <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[var(--color-ink)] leading-snug line-clamp-1">
-                        {row.attribution_ad_name ?? row.attribution_utm_source ?? row.attribution_ad_id ?? 'Sin atribución'}
-                      </p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-[11px] font-medium text-[var(--color-ink)] leading-snug line-clamp-1">
+                          {row.attribution_ad_name ?? row.attribution_utm_source ?? row.attribution_ad_id ?? 'Sin atribución'}
+                        </p>
+                        {/* Badge de estado */}
+                        {row.ad_status === 'ACTIVE' && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-green)] flex-shrink-0" title="Activo" />
+                        )}
+                        {(row.ad_status === 'PAUSED' || row.ad_status === 'ARCHIVED') && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-ink-3)] flex-shrink-0" title={row.ad_status === 'PAUSED' ? 'Pausado' : 'Archivado'} />
+                        )}
+                      </div>
                       <div className="flex items-center gap-2 mt-0.5">
                         {row.attribution_utm_source && (
                           <span className="text-[8px] font-[var(--font-mono)] text-[var(--color-ink-3)] uppercase tracking-wide">
@@ -317,6 +382,7 @@ export function CampaignRanking({
           })}
         </tbody>
       </table>
+    </div>
     </div>
   )
 }
