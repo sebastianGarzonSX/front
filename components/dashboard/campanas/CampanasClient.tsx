@@ -8,12 +8,15 @@ import { FinancialKPIStrip }   from './FinancialKPIStrip'
 import { CampaignRanking }     from './CampaignRanking'
 import { EfficiencyMatrix }    from './EfficiencyMatrix'
 import { TagsDistribution }    from './TagsDistribution'
+import { EventSelector }       from './EventSelector'
+import { InteractionBar }      from './InteractionBar'
 import { useAttributionReport } from '@/hooks/useAttributionReport'
+import { useEventTags }         from '@/hooks/useEventTags'
 import { ROLE_PERMISSIONS, UserProfile } from '@/types'
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-function today()      { return new Date().toISOString().slice(0, 10) }
+function today()            { return new Date().toISOString().slice(0, 10) }
 function daysAgo(n: number) { return new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10) }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -55,42 +58,59 @@ function Card({ title, subtitle, children, className = '', action }: CardProps) 
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function CampanasClient({ user }: { user: UserProfile }) {
-  const [since, setSince] = useState(() => daysAgo(30))
-  const [until, setUntil] = useState(() => today())
+  const [since, setSince]         = useState(() => daysAgo(30))
+  const [until, setUntil]         = useState(() => today())
+  const [selectedTag, setSelectedTag] = useState<string | null>(null)
 
-  const { data, isLoading, error } = useAttributionReport(since, until)
+  const { data, isLoading, error } = useAttributionReport(since, until, selectedTag)
+  const { tags, isLoading: tagsLoading } = useEventTags()
 
   const permissions       = ROLE_PERMISSIONS[user.role]
   const canViewFinancials = permissions.canViewFinancials
 
-  // Meta activo si hay gasto o impresiones en el período
-  const metaEnabled = (data?.meta_totals?.total_spend       ?? 0) > 0 ||
-                      (data?.meta_totals?.total_impressions  ?? 0) > 0
+  const metaEnabled = (data?.meta_totals?.total_spend      ?? 0) > 0 ||
+                      (data?.meta_totals?.total_impressions ?? 0) > 0
 
-  const adCount        = data?.by_ad?.length         ?? 0
-  const pipelineCount  = new Set(data?.by_pipeline?.map((r) => r.pipeline_id) ?? []).size
+  const adCount       = data?.by_ad?.length         ?? 0
+  const pipelineCount = new Set(data?.by_pipeline?.map((r) => r.pipeline_id) ?? []).size
+  const totalSpend    = data?.meta_totals?.total_spend ?? 0
+
+  const crmStats = data?.crm_stats ?? null
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-5">
 
-      {/* ── Cabecera: selector de período ───────────────────────────────── */}
-      <div className="flex items-center justify-between flex-wrap gap-3 animate-fade-up">
+      {/* ── Cabecera ────────────────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between flex-wrap animate-fade-up">
         <div>
           <h1 className="font-[var(--font-display)] text-xl font-semibold text-[var(--color-ink)]">
             Campañas & Atribución
           </h1>
           <p className="text-[10px] font-[var(--font-mono)] text-[var(--color-ink-3)] mt-0.5">
-            {adCount > 0 ? `${adCount} fuentes detectadas · ${pipelineCount} pipelines` : 'Cargando datos…'}
+            {selectedTag
+              ? `Filtrado: "${selectedTag}" · ${adCount} fuentes · ${pipelineCount} pipelines`
+              : adCount > 0
+                ? `${adCount} fuentes detectadas · ${pipelineCount} pipelines`
+                : 'Cargando datos…'}
           </p>
         </div>
-        <DateRangeSelector
-          since={since}
-          until={until}
-          onChange={(s, u) => { setSince(s); setUntil(u) }}
-        />
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Selector de evento / ciudad */}
+          <EventSelector
+            tags={tags}
+            selected={selectedTag}
+            onChange={setSelectedTag}
+            isLoading={tagsLoading}
+          />
+          <DateRangeSelector
+            since={since}
+            until={until}
+            onChange={(s, u) => { setSince(s); setUntil(u) }}
+          />
+        </div>
       </div>
 
-      {/* ── Financial KPI Strip ─────────────────────────────────────────── */}
+      {/* ── Financial KPI Strip ─────────────────────────────────────────────── */}
       <section className="animate-fade-up stagger-1">
         <SectionLabel>Métricas financieras — período seleccionado</SectionLabel>
         <FinancialKPIStrip
@@ -100,7 +120,7 @@ export function CampanasClient({ user }: { user: UserProfile }) {
         />
       </section>
 
-      {/* ── Meta Ads summary ────────────────────────────────────────────── */}
+      {/* ── Meta Ads summary ────────────────────────────────────────────────── */}
       <section className="animate-fade-up stagger-2">
         <SectionLabel>Meta Ads — inversión del período</SectionLabel>
         <MetaSummaryBar
@@ -110,7 +130,16 @@ export function CampanasClient({ user }: { user: UserProfile }) {
         />
       </section>
 
-      {/* ── Main row: Ranking + Funnel ──────────────────────────────────── */}
+      {/* ── Interacción de leads CRM ────────────────────────────────────────── */}
+      <section className="animate-fade-up stagger-2">
+        <SectionLabel>
+          Leads en CRM — temperatura de respuesta
+          {selectedTag ? ` · "${selectedTag}"` : ''}
+        </SectionLabel>
+        <InteractionBar stats={crmStats} isLoading={isLoading} />
+      </section>
+
+      {/* ── Main row: Ranking + Funnel ──────────────────────────────────────── */}
       {error ? (
         <div className="flex items-center justify-center py-16 text-sm text-[var(--color-red)] animate-fade-up stagger-3">
           Error al cargar el informe: {error}
@@ -118,10 +147,10 @@ export function CampanasClient({ user }: { user: UserProfile }) {
       ) : (
         <>
           <section className="grid grid-cols-1 xl:grid-cols-5 gap-4 animate-fade-up stagger-3">
-            {/* Campaign Ranking — 3/5 columns */}
+            {/* Campaign Ranking — 3/5 */}
             <Card
-              title="Ranking de anuncios y fuentes"
-              subtitle={`ordenado por columna · ${since} → ${until}`}
+              title="Creativos y fuentes"
+              subtitle={`ordenado por columna · ${since} → ${until}${selectedTag ? ` · "${selectedTag}"` : ''}`}
               className="xl:col-span-3"
             >
               <CampaignRanking
@@ -132,21 +161,26 @@ export function CampanasClient({ user }: { user: UserProfile }) {
               />
             </Card>
 
-            {/* Pipeline Funnel — 2/5 columns */}
+            {/* Pipeline Funnel — 2/5 */}
             <Card
-              title="Funnel de conversión"
-              subtitle={pipelineCount > 1 ? `${pipelineCount} pipelines · selecciona pestaña` : 'por etapa del pipeline'}
+              title="Embudo de ventas"
+              subtitle={
+                canViewFinancials && totalSpend > 0
+                  ? 'costo por etapa visible · selecciona pestaña'
+                  : pipelineCount > 1 ? `${pipelineCount} pipelines · selecciona pestaña` : 'por etapa del pipeline'
+              }
               className="xl:col-span-2"
             >
               <PipelineFunnel
                 byPipeline={data?.by_pipeline ?? []}
                 isLoading={isLoading}
                 canViewFinancials={canViewFinancials}
+                totalMetaSpend={totalSpend}
               />
             </Card>
           </section>
 
-          {/* ── Second row: Efficiency Matrix + Tags ────────────────────── */}
+          {/* ── Second row: Efficiency + Tags ───────────────────────────────── */}
           <section className="grid grid-cols-1 lg:grid-cols-5 gap-4 animate-fade-up stagger-4">
             <Card
               title={metaEnabled && canViewFinancials ? 'Cuadrante de eficiencia' : 'Distribución de fuentes'}
@@ -167,7 +201,7 @@ export function CampanasClient({ user }: { user: UserProfile }) {
 
             <Card
               title="Leads por evento / tag"
-              subtitle="Top 20 etiquetas del período"
+              subtitle={selectedTag ? `filtrado por "${selectedTag}"` : 'Top 20 etiquetas del período'}
               className="lg:col-span-2"
             >
               <TagsDistribution

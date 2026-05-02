@@ -275,11 +275,77 @@ export interface MetaTotals {
   avg_cpm:                number
 }
 
+export interface CRMStats {
+  total_leads:         number
+  with_interaction:    number
+  without_interaction: number
+}
+
+export interface EventTag {
+  tag:   string
+  count: number
+}
+
+// ── Clase en Vivo ─────────────────────────────────────────────────────────────
+
+export interface LMDistItem {
+  lm_tag: string
+  count:  number
+  pct:    number
+}
+
+export interface CustomFieldRow {
+  field_name:  string
+  field_value: string
+  count:       number
+  pct:         number
+}
+
+export interface ClaseReport {
+  class_tag:     string
+  since:         string
+  until:         string
+  total_leads:   number
+  lm_dist:       LMDistItem[]
+  sessions:      number
+  purchases:     number
+  revenue:       number
+  custom_fields: CustomFieldRow[]
+}
+
+export interface ClaseSummaryRow {
+  class_tag:  string
+  crm_leads:  number
+  lm_engaged: number
+  sessions:   number
+  purchases:  number
+  revenue:    number
+}
+
+export interface MetaCampaignRow {
+  campaign_name: string
+  spend:         number
+  clicks:        number
+  impressions:   number
+  conversions:   number
+  cpc:           number
+  cpl:           number
+  ctr:           number
+}
+
+export interface MetaClaseData {
+  campaigns: MetaCampaignRow[]
+  since:     string
+  until:     string
+}
+
 export interface AttributionReport {
-  since:        string
-  until:        string
-  by_ad:        AttributionByAd[]
-  by_pipeline:  AttributionByPipeline[]
-  by_tag:       AttributionByTag[]
-  meta_totals:  MetaTotals
+  since:       string
+  until:       string
+  tag_filter:  string | null
+  by_ad:       AttributionByAd[]
+  by_pipeline: AttributionByPipeline[]
+  by_tag:      AttributionByTag[]
+  meta_totals: MetaTotals
+  crm_stats:   CRMStats
 }

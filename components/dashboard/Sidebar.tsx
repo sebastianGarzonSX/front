@@ -5,10 +5,8 @@ import { usePathname } from 'next/navigation'
 import { signOut } from '@/app/actions/auth'
 import { UserProfile, ROLE_PERMISSIONS } from '@/types'
 import {
-  LayoutDashboard,
-  Users,
-  TrendingUp,
   BarChart2,
+  TrendingUp,
   LogOut,
   ChevronRight,
 } from 'lucide-react'
@@ -22,26 +20,14 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   {
-    label: 'Dashboard',
-    href: '/dashboard',
-    icon: <LayoutDashboard size={16} strokeWidth={1.5} />,
-  },
-  {
-    label: 'Leads',
-    href: '/dashboard/leads',
-    icon: <Users size={16} strokeWidth={1.5} />,
-    permission: 'canViewLeads',
-  },
-  {
-    label: 'Oportunidades',
-    href: '/dashboard/oportunidades',
-    icon: <TrendingUp size={16} strokeWidth={1.5} />,
-    permission: 'canViewOpportunities',
-  },
-  {
     label: 'Campañas',
     href: '/dashboard/campanas',
     icon: <BarChart2 size={16} strokeWidth={1.5} />,
+  },
+  {
+    label: 'AdsManager PRO',
+    href: '/dashboard/adsmanager',
+    icon: <TrendingUp size={16} strokeWidth={1.5} />,
   },
 ]
 

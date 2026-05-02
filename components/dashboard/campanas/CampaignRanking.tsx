@@ -259,21 +259,25 @@ export function CampaignRanking({
                 {/* Name + thumbnail + links */}
                 <td className="px-3 py-3 max-w-[240px]">
                   <div className="flex items-center gap-2.5">
-                    {/* Thumbnail */}
+                    {/* Thumbnail — 72×72 para ver el creativo */}
                     {row.thumbnail_url ? (
-                      <div className="w-8 h-8 rounded flex-shrink-0 overflow-hidden border border-[var(--color-border)]">
+                      <div className="w-[72px] h-[72px] rounded-[var(--radius-sm)] flex-shrink-0 overflow-hidden border border-[var(--color-border)]">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={row.thumbnail_url}
                           alt=""
                           className="w-full h-full object-cover"
                           loading="lazy"
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+                          onError={(e) => {
+                            const el = e.currentTarget as HTMLImageElement
+                            el.style.display = 'none'
+                            el.parentElement!.innerHTML = '<span class="text-[8px] text-[var(--color-ink-3)] flex items-center justify-center w-full h-full">AD</span>'
+                          }}
                         />
                       </div>
                     ) : (
-                      <div className="w-8 h-8 rounded flex-shrink-0 bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-center justify-center">
-                        <span className="text-[8px] text-[var(--color-ink-3)]">AD</span>
+                      <div className="w-[72px] h-[72px] rounded-[var(--radius-sm)] flex-shrink-0 bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-center justify-center">
+                        <span className="text-[9px] text-[var(--color-ink-3)] font-[var(--font-mono)]">AD</span>
                       </div>
                     )}
 

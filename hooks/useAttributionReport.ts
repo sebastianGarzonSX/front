@@ -4,16 +4,18 @@ import { useState, useEffect, useCallback } from 'react'
 import { AttributionReport } from '@/types'
 import { apiFetch } from '@/lib/api'
 
-export function useAttributionReport(since: string, until: string) {
-  const [data, setData]       = useState<AttributionReport | null>(null)
+export function useAttributionReport(since: string, until: string, tag?: string | null) {
+  const [data, setData]         = useState<AttributionReport | null>(null)
   const [isLoading, setLoading] = useState(true)
-  const [error, setError]     = useState<string | null>(null)
+  const [error, setError]       = useState<string | null>(null)
 
   const fetch_ = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const res = await apiFetch(`/api/reports/attribution?since=${since}&until=${until}`)
+      let url = `/api/reports/attribution?since=${since}&until=${until}`
+      if (tag) url += `&tag=${encodeURIComponent(tag)}`
+      const res = await apiFetch(url)
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
         throw new Error(body.error ?? `Error ${res.status}`)
@@ -24,7 +26,7 @@ export function useAttributionReport(since: string, until: string) {
     } finally {
       setLoading(false)
     }
-  }, [since, until])
+  }, [since, until, tag])
 
   useEffect(() => { fetch_() }, [fetch_])
 

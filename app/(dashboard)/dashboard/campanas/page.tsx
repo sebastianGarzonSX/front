@@ -1,8 +1,8 @@
-import { getAuthenticatedUser } from '@/lib/auth'
-import { Header } from '@/components/dashboard/Header'
-import { CampanasClient } from '@/components/dashboard/campanas/CampanasClient'
+import { getAuthenticatedUser }  from '@/lib/auth'
+import { Header }                from '@/components/dashboard/Header'
+import { ClaseEnVivoClient }     from '@/components/dashboard/campanas/ClaseEnVivoClient'
 
-export const metadata = { title: 'Campañas — Diana Cortés' }
+export const metadata = { title: 'Clase en Vivo — Diana Cortés' }
 
 export default async function CampanasPage() {
   const user = await getAuthenticatedUser()
@@ -10,11 +10,11 @@ export default async function CampanasPage() {
   return (
     <div className="flex flex-col h-full">
       <Header
-        title="Campañas & Atribución"
-        subtitle="Informe unificado Meta Ads + GoHighLevel"
+        title="Clase en Vivo"
+        subtitle="Meta Ads + GoHighLevel — funnel semanal por clase"
         user={user}
       />
-      <CampanasClient user={user} />
+      <ClaseEnVivoClient user={user} />
     </div>
   )
 }
