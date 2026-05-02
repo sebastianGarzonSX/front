@@ -6,9 +6,9 @@ import { signOut } from '@/app/actions/auth'
 import { UserProfile, ROLE_PERMISSIONS } from '@/types'
 import {
   BarChart2,
-  TrendingUp,
   LogOut,
   ChevronRight,
+  Link2,
 } from 'lucide-react'
 
 interface NavItem {
@@ -20,14 +20,14 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   {
-    label: 'Campañas',
+    label: 'Clase en Vivo',
     href: '/dashboard/campanas',
     icon: <BarChart2 size={16} strokeWidth={1.5} />,
   },
   {
-    label: 'AdsManager PRO',
-    href: '/dashboard/adsmanager',
-    icon: <TrendingUp size={16} strokeWidth={1.5} />,
+    label: 'Generador UTM',
+    href: '/dashboard/utm-builder',
+    icon: <Link2 size={16} strokeWidth={1.5} />,
   },
 ]
 

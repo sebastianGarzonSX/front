@@ -57,8 +57,8 @@ export function ClaseEnVivoClient({ user: _user }: { user: UserProfile }) {
   // Tomar la campaña con mayor gasto para Meta vs GHL
   const mainCampaign = meta?.campaigns?.[0] ?? null
 
-  // Solo etiquetas que empiezan con 'clase '
-  const claseTags = tags.filter((t) => t.tag.startsWith('clase '))
+  // Etiquetas que empiezan con 'clase' (incluye 'clase ' y 'clase en vivo')
+  const claseTags = tags.filter((t) => t.tag.toLowerCase().startsWith('clase'))
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-5">

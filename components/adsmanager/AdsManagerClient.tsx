@@ -931,8 +931,8 @@ export default function AdsManagerClient({ userRole, userName, userPlan = 'basic
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredCampaigns.map(c => (
-                    <tr key={c.campaign_id} style={{ borderBottom: '1px solid rgba(255,255,255,.04)' }}>
+                  {filteredCampaigns.map((c, idx) => (
+                    <tr key={`${c.campaign_id}-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,.04)' }}>
                       <td style={{ padding: '8px 6px' }}>
                         <input type="checkbox"
                           checked={selected.has(c.campaign_id)}
@@ -989,7 +989,7 @@ export default function AdsManagerClient({ userRole, userName, userPlan = 'basic
               : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 16 }}>
                   {topAds.map((ad, i) => (
-                    <div key={ad.ad_id as string} style={cardStyle}>
+                    <div key={`${ad.ad_id}-${i}`} style={cardStyle}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                         <span style={{ fontSize: 11, fontWeight: 800, background: ['#ffd166','#a8dadc','#e8f5e9','#ffe5b4','#fce4ec'][i] ?? '#334155', color: '#000', padding: '2px 8px', borderRadius: 20 }}>#{i+1}</span>
                         <span style={{ flex: 1, fontSize: 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={ad.ad_name as string}>{ad.ad_name}</span>
@@ -1093,8 +1093,8 @@ export default function AdsManagerClient({ userRole, userName, userPlan = 'basic
                         </tr>
                       </thead>
                       <tbody>
-                        {reportData.adMap.map(a => (
-                          <tr key={a.name} style={{ borderBottom: '1px solid rgba(255,255,255,.04)' }}>
+                        {reportData.adMap.map((a, idx) => (
+                          <tr key={`ad-${a.name}-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,.04)' }}>
                             <td style={{ padding: '6px 10px', fontWeight: 600 }}>{a.name}</td>
                             <td style={{ padding: '6px 10px', textAlign: 'right' }}>{a.sales}</td>
                             <td style={{ padding: '6px 10px', textAlign: 'right', color: '#06d6a0', fontWeight: 700 }}>{usd(a.commission)}</td>
@@ -1119,8 +1119,8 @@ export default function AdsManagerClient({ userRole, userName, userPlan = 'basic
                         </tr>
                       </thead>
                       <tbody>
-                        {reportData.campMap.map(c => (
-                          <tr key={c.name} style={{ borderBottom: '1px solid rgba(255,255,255,.04)' }}>
+                        {reportData.campMap.map((c, idx) => (
+                          <tr key={`camp-${c.name}-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,.04)' }}>
                             <td style={{ padding: '6px 10px', fontWeight: 600 }}>{c.name}</td>
                             <td style={{ padding: '6px 10px', textAlign: 'right', color: '#8892b0' }}>{c.ads}</td>
                             <td style={{ padding: '6px 10px', textAlign: 'right' }}>{c.sales}</td>
@@ -1147,8 +1147,8 @@ export default function AdsManagerClient({ userRole, userName, userPlan = 'basic
               ? <EmptyState icon="🚀" msg="No hay lanzamientos en este período" />
               : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 16 }}>
-                  {launches.map(l => (
-                    <div key={l.name} style={cardStyle}>
+                  {launches.map((l, idx) => (
+                    <div key={`launch-${l.name}-${idx}`} style={cardStyle}>
                       <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.name}</div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, fontSize: 12 }}>
                         {[['Gasto',usd(l.spend)],['Revenue',usd(l.revenue)],['ROAS',roas(l.roas)],['CPA',usd(l.cpa)],['Leads',num(l.leads)],['Compras',num(l.purchases)],['CTR',pct(l.ctr)],['Días',String(l.days)]].map(([lbl,val]) => (
@@ -1178,8 +1178,8 @@ export default function AdsManagerClient({ userRole, userName, userPlan = 'basic
                     <div style={{ fontWeight: 800, color, marginBottom: 10 }}>{title}</div>
                     {items.length === 0
                       ? <p style={{ color: '#8892b0', fontSize: 12 }}>Sin campañas en esta categoría</p>
-                      : items.map((c: any) => (
-                        <div key={c.id as string} style={{ borderTop: '1px solid rgba(255,255,255,.06)', paddingTop: 8, marginTop: 8, fontSize: 12 }}>
+                      : items.map((c: any, idx: number) => (
+                        <div key={`${c.id}-${idx}`} style={{ borderTop: '1px solid rgba(255,255,255,.06)', paddingTop: 8, marginTop: 8, fontSize: 12 }}>
                           <div style={{ fontWeight: 600, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</div>
                           <div style={{ color: '#8892b0' }}>Gasto: {usd(c.spend)} · ROAS: {roas(c.roas)} · CPA: {usd(c.cpa)}</div>
                         </div>

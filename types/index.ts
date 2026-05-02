@@ -301,16 +301,24 @@ export interface CustomFieldRow {
   pct:         number
 }
 
+export interface PipelineFunnelStage {
+  stage_name: string
+  position:   number
+  count:      number
+}
+
 export interface ClaseReport {
-  class_tag:     string
-  since:         string
-  until:         string
-  total_leads:   number
-  lm_dist:       LMDistItem[]
-  sessions:      number
-  purchases:     number
-  revenue:       number
-  custom_fields: CustomFieldRow[]
+  class_tag:       string
+  since:           string
+  until:           string
+  total_leads:     number
+  lm_engaged:      number
+  lm_dist:         LMDistItem[]
+  sessions:        number
+  purchases:       number
+  revenue:         number
+  custom_fields:   CustomFieldRow[]
+  pipeline_funnel: PipelineFunnelStage[]
 }
 
 export interface ClaseSummaryRow {
@@ -337,6 +345,112 @@ export interface MetaClaseData {
   campaigns: MetaCampaignRow[]
   since:     string
   until:     string
+}
+
+// ---------------------------------------------------------------------------
+// Embudo por Ciudad — nuevos tipos (Reunión 02 Mayo 2026)
+// ---------------------------------------------------------------------------
+
+export type CityKey = 'bogota' | 'bucaramanga' | 'medellin' | 'barranquilla'
+
+export interface CityOption {
+  key:        CityKey
+  label:      string
+  tag_prefix: string   // prefijo de tag en GHL, ej. "workshop bucaramanga"
+}
+
+export const CITIES: CityOption[] = [
+  { key: 'bogota',       label: 'Bogotá',       tag_prefix: 'bogota' },
+  { key: 'bucaramanga',  label: 'Bucaramanga',  tag_prefix: 'bucaramanga' },
+  { key: 'medellin',     label: 'Medellín',     tag_prefix: 'medellin' },
+  { key: 'barranquilla', label: 'Barranquilla', tag_prefix: 'barranquilla' },
+]
+
+export type FunnelStageKey =
+  | 'cold'        // Lead frío
+  | 'interacted'  // Interactuó
+  | 'survey'      // Primera pregunta / Muestreo
+  | 'decision'    // Toma de decisión
+  | 'payment'     // Solicitud de pago
+  | 'won'         // Venta realizada
+
+export interface FunnelStageData {
+  stage_key:      FunnelStageKey
+  stage_name:     string    // nombre real en GHL
+  count:          number
+  percentage:     number    // % del primer stage (total de leads)
+  cost_per_lead:  number | null  // meta_spend / count
+}
+
+export type PipelineType = 'registro' | 'venta'
+
+export interface FunnelByCityResponse {
+  city:          string
+  since:         string
+  until:         string
+  pipeline_type: PipelineType
+  total_leads:   number
+  meta_spend:    number
+  stages:        FunnelStageData[]
+}
+
+// Traffic KPIs — cruzando Meta + CRM
+export interface TrafficKPIsResponse {
+  since:               string
+  until:               string
+  city:                string | null
+  // Meta (nativos)
+  meta_leads:          number
+  meta_cpl:            number
+  meta_cpc:            number
+  meta_impressions:    number
+  meta_ctr:            number
+  meta_spend:          number
+  // CRM (reales)
+  crm_leads:           number
+  crm_cpl:             number    // meta_spend / crm_leads
+  // Variación
+  variation_absolute:  number    // meta_leads - crm_leads
+  variation_pct:       number    // ((meta_leads - crm_leads) / meta_leads) * 100
+}
+
+// Ads Preview
+export interface AdPreviewItem {
+  ad_id:         string
+  ad_name:       string
+  campaign_name: string
+  adset_name:    string | null
+  status:        MetaAdStatus
+  thumbnail_url: string | null
+  preview_link:  string | null
+  spend:         number
+  impressions:   number
+  clicks:        number
+  ctr:           number
+  conversions:   number
+  cpl:           number | null
+}
+
+export interface AdsPreviewResponse {
+  ads:   AdPreviewItem[]
+  since: string
+  until: string
+}
+
+// Survey Breakdown — respuestas a la primera pregunta
+export interface SurveyCategoryItem {
+  category:   string   // 'dolores' | 'ventas' | 'claridad' | 'equipos'
+  label:      string   // nombre legible
+  count:      number
+  percentage: number
+}
+
+export interface SurveyBreakdownResponse {
+  city:       string | null
+  since:      string
+  until:      string
+  total:      number
+  categories: SurveyCategoryItem[]
 }
 
 export interface AttributionReport {
