@@ -11,7 +11,7 @@ interface Props {
 }
 
 export function LpViewsPanel({ tag, totalLeads }: Props) {
-  const { views, uniqueViews, updatedAt, isLoading, snippet, snippetLoading, loadSnippet } = useLpViews(tag)
+  const { views, uniqueViews, updatedAt, isLoading, error, snippet, snippetLoading, loadSnippet } = useLpViews(tag)
   const [showSnippet, setShowSnippet] = useState(false)
   const [copied, setCopied]           = useState(false)
 
@@ -105,6 +105,13 @@ export function LpViewsPanel({ tag, totalLeads }: Props) {
               </p>
             )}
           </div>
+
+          {/* Error debug */}
+          {error && (
+            <p className="text-[10px] font-[var(--font-mono)] text-[var(--color-red)] mt-2 bg-[var(--color-red)]/10 px-2 py-1 rounded break-all">
+              Error: {error}
+            </p>
+          )}
 
           {/* Estado y timestamp */}
           <div className="flex items-center justify-between mt-2 gap-2">

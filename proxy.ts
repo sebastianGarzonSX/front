@@ -3,7 +3,27 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 const PUBLIC_ROUTES = ['/login', '/api/tracking/pageview']
 
+const TRACKING_CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+}
+
 export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+
+  // Tracking pixel: responder CORS preflight directo y dejar pasar el POST
+  if (pathname === '/api/tracking/pageview') {
+    if (request.method === 'OPTIONS') {
+      return new NextResponse(null, { status: 204, headers: TRACKING_CORS_HEADERS })
+    }
+    const response = NextResponse.next({ request })
+    for (const [k, v] of Object.entries(TRACKING_CORS_HEADERS)) {
+      response.headers.set(k, v)
+    }
+    return response
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -33,7 +53,6 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const pathname = request.nextUrl.pathname
   const isPublicRoute = PUBLIC_ROUTES.some((route) => pathname.startsWith(route))
 
   // Usuario no autenticado intentando acceder a ruta protegida

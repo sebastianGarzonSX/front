@@ -23,17 +23,25 @@ export function useLpViews(tag: string | null) {
   const [snippet, setSnippet]           = useState<string | null>(null)
   const [snippetLoading, setSnippetLoading] = useState(false)
 
+  const [error, setError] = useState<string | null>(null)
+
   useEffect(() => {
-    if (!tag) { setViews(null); setUniqueViews(null); setUpdatedAt(null); return }
-    setLoading(true)
+    if (!tag) { setViews(null); setUniqueViews(null); setUpdatedAt(null); setError(null); return }
+    setLoading(true); setError(null)
     apiFetch(`/api/tracking/lp-views?tag=${encodeURIComponent(tag)}`)
-      .then(r => r.json())
+      .then(async r => {
+        if (!r.ok) {
+          const body = await r.text().catch(() => '')
+          throw new Error(`lp-views ${r.status}: ${body}`)
+        }
+        return r.json()
+      })
       .then((d: LpViewsResponse) => {
         setViews(d.lp_views)
         setUniqueViews(d.unique_views)
         setUpdatedAt(d.updated_at)
       })
-      .catch(() => {})
+      .catch((e) => { setError(e instanceof Error ? e.message : String(e)) })
       .finally(() => setLoading(false))
   }, [tag])
 
@@ -42,10 +50,16 @@ export function useLpViews(tag: string | null) {
     setSnippetLoading(true)
     try {
       const res = await apiFetch(`/api/tracking/snippet?tag=${encodeURIComponent(tag)}`)
+      if (!res.ok) {
+        const body = await res.text().catch(() => '')
+        throw new Error(`snippet ${res.status}: ${body}`)
+      }
       const data: SnippetResponse = await res.json()
       setSnippet(data.snippet)
-    } catch {
+    } catch (e) {
+      console.error('[useLpViews] snippet error:', e)
       setSnippet(null)
+      setError(e instanceof Error ? e.message : String(e))
     } finally {
       setSnippetLoading(false)
     }
@@ -55,5 +69,5 @@ export function useLpViews(tag: string | null) {
     setSnippet(null)
   }, [tag])
 
-  return { views, uniqueViews, updatedAt, isLoading, snippet, snippetLoading, loadSnippet }
+  return { views, uniqueViews, updatedAt, isLoading, error, snippet, snippetLoading, loadSnippet }
 }
