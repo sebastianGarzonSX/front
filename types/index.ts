@@ -312,6 +312,7 @@ export interface ClaseReport {
   since:           string
   until:           string
   total_leads:     number
+  lp_views?:       number   // visitas a la landing page (flujo 2 — pixel/seguimiento)
   lm_engaged:      number
   lm_dist:         LMDistItem[]
   sessions:        number
@@ -339,6 +340,34 @@ export interface MetaCampaignRow {
   cpc:           number
   cpl:           number
   ctr:           number
+}
+
+// ── Calendario GHL ────────────────────────────────────────────────────────────
+
+export interface CalendarConfigResponse {
+  calendar_id: string | null
+}
+
+export interface AppointmentItem {
+  id:            string
+  contact_id:    string
+  contact_name:  string | null
+  contact_email: string | null
+  start_time:    string   // ISO
+  end_time:      string
+  status:        string
+  cancelled:     boolean
+  title:         string | null
+}
+
+export interface CalendarAppointmentsResponse {
+  count:       number | null   // null = calendar no configurado
+  total:       number
+  cancelled:   number
+  calendar_id: string | null
+  since:       string
+  until:       string
+  items?:      AppointmentItem[]
 }
 
 export interface MetaClaseData {

@@ -3,11 +3,16 @@
 import { ClaseReport, MetaCampaignRow } from '@/types'
 import { formatCurrency, formatNumber } from '@/components/dashboard/KPICard'
 import { Calendar, ShoppingBag, TrendingUp, DollarSign } from 'lucide-react'
+import { CalendarSyncPanel } from './CalendarSyncPanel'
+import { AppointmentsTimeline } from './AppointmentsTimeline'
+import { useCalendarSync } from '@/hooks/useCalendarSync'
 
 interface SessionsPurchasesProps {
   report:    ClaseReport | null
   meta:      MetaCampaignRow | null
   isLoading: boolean
+  since:     string
+  until:     string
 }
 
 interface MetricTileProps {
@@ -42,7 +47,11 @@ function MetricTile({ icon, label, value, sub, color = 'var(--color-gold)' }: Me
   )
 }
 
-export function SessionsPurchases({ report, meta, isLoading }: SessionsPurchasesProps) {
+export function SessionsPurchases({ report, meta, isLoading, since, until }: SessionsPurchasesProps) {
+  // Hook compartido entre el tile de Sesiones y el panel de calendario:
+  // garantiza que ambos usen la misma fuente (agendamientos del calendario GHL).
+  const calSync = useCalendarSync(since, until)
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 gap-3">
@@ -56,9 +65,16 @@ export function SessionsPurchases({ report, meta, isLoading }: SessionsPurchases
   }
 
   const spend         = meta?.spend ?? 0
-  const sessions      = report.sessions
   const purchases     = report.purchases
   const totalLeads    = report.total_leads
+
+  // Sesiones = agendamientos activos del calendario (cuando está configurado).
+  // Fallback: el conteo del CRM si todavía no hay calendario sincronizado.
+  const calendarReady = calSync.calendarId !== null && calSync.appointments?.count !== null
+  const sessions      = calendarReady
+    ? (calSync.appointments?.count ?? 0)
+    : report.sessions
+  const sessionsSource = calendarReady ? 'agendamientos GHL' : 'CRM (tag)'
 
   const sesConvRate   = totalLeads > 0  ? ((sessions  / totalLeads) * 100).toFixed(1)  : '0'
   const buyConvRate   = sessions   > 0  ? ((purchases / sessions)  * 100).toFixed(1)  : '0'
@@ -77,7 +93,7 @@ export function SessionsPurchases({ report, meta, isLoading }: SessionsPurchases
             icon={<Calendar size={16} />}
             label="Sesiones"
             value={formatNumber(sessions)}
-            sub={`${sesConvRate}% de ${formatNumber(totalLeads)} leads`}
+            sub={`${sesConvRate}% de ${formatNumber(totalLeads)} leads · ${sessionsSource}`}
             color="var(--color-gold)"
           />
           <MetricTile
@@ -112,6 +128,22 @@ export function SessionsPurchases({ report, meta, isLoading }: SessionsPurchases
           />
         </div>
       </div>
+
+      {/* Separador + sincronización calendario */}
+      <div className="pt-3 border-t border-[var(--color-border)]">
+        <CalendarSyncPanel sync={calSync} />
+      </div>
+
+      {/* Mini calendario / timeline de agendamientos con leads */}
+      {calSync.appointments?.items && calSync.appointments.items.length > 0 && (
+        <div className="pt-3 border-t border-[var(--color-border)]">
+          <AppointmentsTimeline
+            items={calSync.appointments.items}
+            since={since}
+            until={until}
+          />
+        </div>
+      )}
     </div>
   )
 }
