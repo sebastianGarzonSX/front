@@ -3,16 +3,18 @@
 import { useState } from 'react'
 import { UserProfile, CityKey, PipelineType, ROLE_PERMISSIONS } from '@/types'
 import { CityFilter }          from './CityFilter'
+import { CampaignSelector }    from './CampaignSelector'
 import { FunnelByCity, PipelineTypeToggle } from './FunnelByCity'
 import { TrafficComparison }   from './TrafficComparison'
 import { InteractionSplit }    from './InteractionSplit'
 import { SurveyBreakdown }     from './SurveyBreakdown'
-import { AdPreviewGrid }       from './AdPreviewCard'
+import { AdPreviewGrid, TopAdsTable } from './AdPreviewCard'
 import { DateRangeSelector }   from '@/components/dashboard/campanas/DateRangeSelector'
 import { useFunnelByCity }     from '@/hooks/useFunnelByCity'
 import { useTrafficKPIs }      from '@/hooks/useTrafficKPIs'
 import { useAdsPreview }       from '@/hooks/useAdsPreview'
 import { useSurveyBreakdown }  from '@/hooks/useSurveyBreakdown'
+import { useCampaignList, CampaignAccountType } from '@/hooks/useCampaignList'
 
 function today()            { return new Date().toISOString().slice(0, 10) }
 function daysAgo(n: number) { return new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10) }
@@ -57,15 +59,17 @@ interface EmbudoClientProps {
 }
 
 export function EmbudoClient({ user }: EmbudoClientProps) {
-  const [since, setSince]               = useState(() => daysAgo(30))
-  const [until, setUntil]               = useState(() => today())
-  const [city, setCity]                 = useState<CityKey | null>(null)
-  const [pipelineType, setPipelineType] = useState<PipelineType>('registro')
+  const [since, setSince]                         = useState(() => daysAgo(30))
+  const [until, setUntil]                         = useState(() => today())
+  const [city, setCity]                           = useState<CityKey | null>(null)
+  const [pipelineType, setPipelineType]           = useState<PipelineType>('registro')
+  const [selectedCampaigns, setSelectedCampaigns] = useState<string[]>([])
 
   const canViewFinancials = ROLE_PERMISSIONS[user.role].canViewFinancials
 
-  const { data: funnelData, isLoading: funnelLoading }     = useFunnelByCity(city, since, until, pipelineType)
-  const { data: trafficData, isLoading: trafficLoading }   = useTrafficKPIs(since, until, city)
+  const { campaigns, isLoading: campaignsLoading }         = useCampaignList(since, until, 'eventos')
+  const { data: funnelData, isLoading: funnelLoading }     = useFunnelByCity(city, since, until, pipelineType, selectedCampaigns)
+  const { data: trafficData, isLoading: trafficLoading }   = useTrafficKPIs(since, until, city, selectedCampaigns)
   const { data: adsData, isLoading: adsLoading }           = useAdsPreview(since, until)
   const { data: surveyData, isLoading: surveyLoading }     = useSurveyBreakdown(since, until, city)
 
@@ -91,6 +95,7 @@ export function EmbudoClient({ user }: EmbudoClientProps) {
             {city
               ? `Vista filtrada: ${city.charAt(0).toUpperCase() + city.slice(1)}`
               : 'Todas las ciudades — seleccioná una para desglosar'}
+            {selectedCampaigns.length > 0 && ` · ${selectedCampaigns.length} campaña${selectedCampaigns.length > 1 ? 's' : ''}`}
           </p>
         </div>
 
@@ -103,9 +108,21 @@ export function EmbudoClient({ user }: EmbudoClientProps) {
         </div>
       </div>
 
-      {/* ── Filtros de ciudad ───────────────────────────────────────────────── */}
-      <section className="animate-fade-up stagger-1">
+      {/* ── Filtros ──────────────────────────────────────────────────────────── */}
+      <section className="animate-fade-up stagger-1 flex flex-col sm:flex-row sm:items-center gap-3 relative z-20">
         <CityFilter selected={city} onChange={setCity} />
+        <div className="hidden sm:block w-px h-5 bg-[var(--color-border)]" />
+        <div className="flex items-center gap-1.5">
+          <span className="text-[9px] font-[var(--font-mono)] uppercase tracking-[0.16em] text-[var(--color-ink-3)] mr-1">
+            Campaña Meta
+          </span>
+          <CampaignSelector
+            campaigns={campaigns}
+            selected={selectedCampaigns}
+            onChange={setSelectedCampaigns}
+            isLoading={campaignsLoading}
+          />
+        </div>
       </section>
 
       {/* ── Tráfico Meta vs CRM ─────────────────────────────────────────────── */}
@@ -165,9 +182,24 @@ export function EmbudoClient({ user }: EmbudoClientProps) {
         </Card>
       </section>
 
-      {/* ── Creativos ──────────────────────────────────────────────────────── */}
+      {/* ── Top Anuncios ────────────────────────────────────────────────────── */}
       <section className="animate-fade-up stagger-5">
-        <SectionLabel>Creativos activos — Vista ampliada</SectionLabel>
+        <SectionLabel>Top Anuncios — Mejor CPL</SectionLabel>
+        <Card
+          title="Ranking de anuncios"
+          subtitle="Ordenados por menor costo por lead — solo anuncios con conversiones"
+        >
+          <TopAdsTable
+            ads={adsData?.ads ?? []}
+            isLoading={adsLoading}
+            canViewFinancials={canViewFinancials}
+          />
+        </Card>
+      </section>
+
+      {/* ── Creativos ──────────────────────────────────────────────────────── */}
+      <section className="animate-fade-up stagger-6">
+        <SectionLabel>Creativos — Vista ampliada</SectionLabel>
         <AdPreviewGrid
           ads={adsData?.ads ?? []}
           isLoading={adsLoading}

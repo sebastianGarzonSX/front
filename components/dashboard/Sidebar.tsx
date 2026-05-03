@@ -9,6 +9,7 @@ import {
   LogOut,
   ChevronRight,
   Link2,
+  MapPin,
 } from 'lucide-react'
 
 interface NavItem {
@@ -23,6 +24,11 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Clase en Vivo',
     href: '/dashboard/campanas',
     icon: <BarChart2 size={16} strokeWidth={1.5} />,
+  },
+  {
+    label: 'Embudo por Ciudad',
+    href: '/dashboard/embudo',
+    icon: <MapPin size={16} strokeWidth={1.5} />,
   },
   {
     label: 'Generador UTM',

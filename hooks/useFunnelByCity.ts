@@ -8,11 +8,14 @@ export function useFunnelByCity(
   city:         string | null,
   since:        string,
   until:        string,
-  pipelineType: PipelineType = 'registro'
+  pipelineType: PipelineType = 'registro',
+  campaignIds?: string[]
 ) {
   const [data, setData]         = useState<FunnelByCityResponse | null>(null)
   const [isLoading, setLoading] = useState(false)
   const [error, setError]       = useState<string | null>(null)
+
+  const campaignKey = campaignIds?.join(',') ?? ''
 
   const fetch_ = useCallback(async () => {
     if (!city) { setData(null); return }
@@ -25,6 +28,7 @@ export function useFunnelByCity(
         until,
         pipeline_type: pipelineType,
       })
+      if (campaignKey) params.set('campaign_ids', campaignKey)
       const res = await apiFetch(`/api/dashboard/funnel?${params}`)
       if (!res.ok) throw new Error(`Error ${res.status}`)
       setData(await res.json())
@@ -33,7 +37,7 @@ export function useFunnelByCity(
     } finally {
       setLoading(false)
     }
-  }, [city, since, until, pipelineType])
+  }, [city, since, until, pipelineType, campaignKey])
 
   useEffect(() => { fetch_() }, [fetch_])
 

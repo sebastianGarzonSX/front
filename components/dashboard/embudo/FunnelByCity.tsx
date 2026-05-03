@@ -81,30 +81,50 @@ export function FunnelByCity({ data, isLoading, canViewFinancials }: FunnelByCit
 
   return (
     <div>
-      {/* Totales resumen */}
-      <div className="flex items-center gap-6 px-2 py-3 mb-3 border-b border-[var(--color-border)]">
-        <div>
+      {/* Totales resumen — tarjetas coloreadas */}
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        {/* Total leads */}
+        <div
+          className="relative p-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden"
+          style={{ borderTopColor: '#1877F2', borderTopWidth: 2 }}
+        >
+          <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs" style={{ background: '#1877F222', color: '#1877F2' }}>↗</div>
           <p className="text-[9px] font-[var(--font-mono)] uppercase tracking-widest text-[var(--color-ink-3)]">Total leads</p>
-          <p className="text-lg font-semibold font-[var(--font-display)] text-[var(--color-ink)] tabular-nums">
+          <p className="text-xl font-semibold font-[var(--font-display)] tabular-nums leading-none mt-1" style={{ color: '#1877F2' }}>
             {formatNumber(data.total_leads)}
           </p>
+          <div className="absolute bottom-0 left-0 right-0 h-8 pointer-events-none" style={{ background: 'linear-gradient(to top, #1877F20D, transparent)' }} />
         </div>
-        {canViewFinancials && data.meta_spend > 0 && (
-          <div>
+
+        {/* Gasto Meta */}
+        {canViewFinancials && data.meta_spend > 0 ? (
+          <div
+            className="relative p-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden"
+            style={{ borderTopColor: '#F59E0B', borderTopWidth: 2 }}
+          >
+            <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs" style={{ background: '#F59E0B22', color: '#F59E0B' }}>$</div>
             <p className="text-[9px] font-[var(--font-mono)] uppercase tracking-widest text-[var(--color-ink-3)]">Gasto Meta</p>
-            <p className="text-lg font-semibold font-[var(--font-display)] text-[var(--color-gold)] tabular-nums">
+            <p className="text-xl font-semibold font-[var(--font-display)] tabular-nums leading-none mt-1" style={{ color: '#F59E0B' }}>
               {formatCurrency(data.meta_spend)}
             </p>
+            <div className="absolute bottom-0 left-0 right-0 h-8 pointer-events-none" style={{ background: 'linear-gradient(to top, #F59E0B0D, transparent)' }} />
           </div>
-        )}
-        {canViewFinancials && data.meta_spend > 0 && data.total_leads > 0 && (
-          <div>
+        ) : <div />}
+
+        {/* CPL total */}
+        {canViewFinancials && data.meta_spend > 0 && data.total_leads > 0 ? (
+          <div
+            className="relative p-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden"
+            style={{ borderTopColor: '#8B5CF6', borderTopWidth: 2 }}
+          >
+            <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs" style={{ background: '#8B5CF622', color: '#8B5CF6' }}>÷</div>
             <p className="text-[9px] font-[var(--font-mono)] uppercase tracking-widest text-[var(--color-ink-3)]">CPL total</p>
-            <p className="text-lg font-semibold font-[var(--font-display)] text-[var(--color-ink)] tabular-nums">
+            <p className="text-xl font-semibold font-[var(--font-display)] tabular-nums leading-none mt-1" style={{ color: '#8B5CF6' }}>
               {formatCurrency(data.meta_spend / data.total_leads)}
             </p>
+            <div className="absolute bottom-0 left-0 right-0 h-8 pointer-events-none" style={{ background: 'linear-gradient(to top, #8B5CF60D, transparent)' }} />
           </div>
-        )}
+        ) : <div />}
       </div>
 
       {/* Columnas header */}
@@ -129,7 +149,7 @@ export function FunnelByCity({ data, isLoading, canViewFinancials }: FunnelByCit
             : null
 
           return (
-            <div key={stage.stage_key}>
+            <div key={stage.stage_key ?? `stage-${i}`}>
               {/* Drop connector */}
               {dropPct !== null && (
                 <div className="flex items-center gap-2 py-0.5 pl-3">
