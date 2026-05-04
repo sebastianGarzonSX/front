@@ -5,9 +5,10 @@ import { apiFetch } from '@/lib/api'
 import { UserProfile } from '@/types'
 import { UtmEducation } from './UtmEducation'
 import { FunnelLinksManager, type FunnelLink } from './FunnelLinksManager'
+import { MetaUtmApplier } from './MetaUtmApplier'
 import {
   Link2, Copy, Check, Plus, Trash2, ChevronDown, ChevronUp,
-  BookOpen, Settings, Zap, ClipboardList,
+  BookOpen, Settings, Zap, ClipboardList, Target,
 } from 'lucide-react'
 
 /* ── Types ────────────────────────────────────────────────────────────────── */
@@ -63,10 +64,11 @@ type UtmKey = typeof UTM_PARAMS[number]['key']
 /* ── Tabs ─────────────────────────────────────────────────────────────────── */
 
 const TABS = [
-  { id: 'learn',     label: 'Aprende',      icon: <BookOpen size={14} strokeWidth={1.5} /> },
-  { id: 'links',     label: 'Mis Embudos',  icon: <Settings size={14} strokeWidth={1.5} /> },
-  { id: 'generate',  label: 'Generar URL',  icon: <Zap size={14} strokeWidth={1.5} /> },
-  { id: 'history',   label: 'Historial',    icon: <ClipboardList size={14} strokeWidth={1.5} /> },
+  { id: 'learn',     label: 'Aprende',        icon: <BookOpen size={14} strokeWidth={1.5} /> },
+  { id: 'links',     label: 'Mis Embudos',    icon: <Settings size={14} strokeWidth={1.5} /> },
+  { id: 'generate',  label: 'Generar URL',    icon: <Zap size={14} strokeWidth={1.5} /> },
+  { id: 'meta',      label: 'Aplicar a Meta', icon: <Target size={14} strokeWidth={1.5} /> },
+  { id: 'history',   label: 'Historial',      icon: <ClipboardList size={14} strokeWidth={1.5} /> },
 ] as const
 
 type TabId = typeof TABS[number]['id']
@@ -477,6 +479,11 @@ export function UtmBuilderClient({ user }: { user: UserProfile }) {
             </section>
           )}
         </div>
+      )}
+
+      {/* ── Tab: Aplicar a Meta ──────────────────────────────────────────── */}
+      {activeTab === 'meta' && (
+        <MetaUtmApplier initialValues={utmValues} />
       )}
 
       {/* ── Tab: Historial ─────────────────────────────────────────────── */}
