@@ -8,7 +8,7 @@ import { FunnelByCity, PipelineTypeToggle } from './FunnelByCity'
 import { TrafficComparison }   from './TrafficComparison'
 import { InteractionSplit }    from './InteractionSplit'
 import { SurveyBreakdown }     from './SurveyBreakdown'
-import { AdPreviewGrid, TopAdsTable } from './AdPreviewCard'
+import { AdPreviewGrid, AdsRankingPanel } from './AdPreviewCard'
 import { DateRangeSelector }   from '@/components/dashboard/campanas/DateRangeSelector'
 import { useFunnelByCity }     from '@/hooks/useFunnelByCity'
 import { useTrafficKPIs }      from '@/hooks/useTrafficKPIs'
@@ -83,10 +83,10 @@ export function EmbudoClient({ user }: EmbudoClientProps) {
     : null
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+    <div className="flex-1 overflow-y-auto p-6 space-y-5">
 
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between flex-wrap animate-fade-up">
+      {/* ── Cabecera + Filtros ───────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between flex-wrap animate-fade-up">
         <div>
           <h1 className="font-[var(--font-display)] text-xl font-semibold text-[var(--color-ink)]">
             Embudo por Ciudad
@@ -98,7 +98,6 @@ export function EmbudoClient({ user }: EmbudoClientProps) {
             {selectedCampaigns.length > 0 && ` · ${selectedCampaigns.length} campaña${selectedCampaigns.length > 1 ? 's' : ''}`}
           </p>
         </div>
-
         <div className="flex items-center gap-2 flex-wrap">
           <DateRangeSelector
             since={since}
@@ -108,7 +107,7 @@ export function EmbudoClient({ user }: EmbudoClientProps) {
         </div>
       </div>
 
-      {/* ── Filtros ──────────────────────────────────────────────────────────── */}
+      {/* ── Filtros de ciudad y campaña ──────────────────────────────────────── */}
       <section className="animate-fade-up stagger-1 flex flex-col sm:flex-row sm:items-center gap-3 relative z-20">
         <CityFilter selected={city} onChange={setCity} />
         <div className="hidden sm:block w-px h-5 bg-[var(--color-border)]" />
@@ -125,9 +124,11 @@ export function EmbudoClient({ user }: EmbudoClientProps) {
         </div>
       </section>
 
-      {/* ── Tráfico Meta vs CRM ─────────────────────────────────────────────── */}
-      <section className="animate-fade-up stagger-2">
-        <SectionLabel>Tráfico — Meta Ads vs CRM{city ? ` · ${city}` : ''}</SectionLabel>
+      {/* 1 ── Meta Ads vs CRM (sin Card wrapper — igual que MetaVsGHL) ──────── */}
+      <section className="animate-fade-up stagger-1">
+        <SectionLabel>
+          Meta Ads vs CRM{city ? ` · ${city.charAt(0).toUpperCase() + city.slice(1)}` : ''}
+        </SectionLabel>
         <TrafficComparison
           data={trafficData}
           isLoading={trafficLoading}
@@ -135,11 +136,11 @@ export function EmbudoClient({ user }: EmbudoClientProps) {
         />
       </section>
 
-      {/* ── Embudo ─────────────────────────────────────────────────────────── */}
-      <section className="animate-fade-up stagger-3">
+      {/* 2 ── Embudo de conversión ───────────────────────────────────────────── */}
+      <section className="animate-fade-up stagger-2">
         <SectionLabel>
           Embudo de conversión — {pipelineType === 'registro' ? 'Registro' : 'Venta'}
-          {city ? ` · ${city}` : ''}
+          {city ? ` · ${city.charAt(0).toUpperCase() + city.slice(1)}` : ''}
         </SectionLabel>
         <Card
           title="Pipeline por etapa"
@@ -159,11 +160,11 @@ export function EmbudoClient({ user }: EmbudoClientProps) {
         </Card>
       </section>
 
-      {/* ── Interacción + Muestreo ──────────────────────────────────────────── */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-up stagger-4">
+      {/* 3 ── Interacción + Muestreo ─────────────────────────────────────────── */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-up stagger-3">
         <Card
-          title="Segmentación de leads"
-          subtitle="Con y sin interacción"
+          title="Temperatura de respuesta"
+          subtitle="Leads con y sin interacción en el CRM"
         >
           <InteractionSplit
             stats={crmStats}
@@ -182,23 +183,24 @@ export function EmbudoClient({ user }: EmbudoClientProps) {
         </Card>
       </section>
 
-      {/* ── Top Anuncios ────────────────────────────────────────────────────── */}
-      <section className="animate-fade-up stagger-5">
-        <SectionLabel>Top Anuncios — Mejor CPL</SectionLabel>
+      {/* 4 ── Ranking de anuncios por campaña ───────────────────────────────── */}
+      <section className="animate-fade-up stagger-4">
+        <SectionLabel>Ranking de Anuncios — Mejor CPL</SectionLabel>
         <Card
-          title="Ranking de anuncios"
-          subtitle="Ordenados por menor costo por lead — solo anuncios con conversiones"
+          title="Anuncios por campaña"
+          subtitle="Seleccioná una campaña para ver el ranking · ordenado por menor CPL"
         >
-          <TopAdsTable
+          <AdsRankingPanel
             ads={adsData?.ads ?? []}
-            isLoading={adsLoading}
+            campaigns={campaigns}
+            isLoading={adsLoading || campaignsLoading}
             canViewFinancials={canViewFinancials}
           />
         </Card>
       </section>
 
-      {/* ── Creativos ──────────────────────────────────────────────────────── */}
-      <section className="animate-fade-up stagger-6">
+      {/* 5 ── Creativos ──────────────────────────────────────────────────────── */}
+      <section className="animate-fade-up stagger-5">
         <SectionLabel>Creativos — Vista ampliada</SectionLabel>
         <AdPreviewGrid
           ads={adsData?.ads ?? []}

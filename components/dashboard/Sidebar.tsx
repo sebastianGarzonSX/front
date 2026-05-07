@@ -10,7 +10,9 @@ import {
   ChevronRight,
   Link2,
   MapPin,
+  X,
 } from 'lucide-react'
+import { useSidebar } from './SidebarContext'
 
 interface NavItem {
   label: string
@@ -43,6 +45,7 @@ interface SidebarProps {
 
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
+  const { close } = useSidebar()
   const permissions = ROLE_PERMISSIONS[user.role]
 
   const visibleItems = NAV_ITEMS.filter(
@@ -56,13 +59,23 @@ export function Sidebar({ user }: SidebarProps) {
       h-full
     ">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-[var(--color-border)]">
-        <p className="font-[var(--font-display)] text-base font-semibold text-[var(--color-ink)] leading-none">
-          Diana Cortés
-        </p>
-        <p className="mt-0.5 text-[10px] font-[var(--font-mono)] tracking-[0.18em] uppercase text-[var(--color-gold)]">
-          Dashboard
-        </p>
+      <div className="px-5 py-5 border-b border-[var(--color-border)] flex items-center justify-between">
+        <div>
+          <p className="font-[var(--font-display)] text-base font-semibold text-[var(--color-ink)] leading-none">
+            Diana Cortés
+          </p>
+          <p className="mt-0.5 text-[10px] font-[var(--font-mono)] tracking-[0.18em] uppercase text-[var(--color-gold)]">
+            Dashboard
+          </p>
+        </div>
+        {/* Botón cerrar — solo visible en mobile */}
+        <button
+          onClick={close}
+          className="lg:hidden p-1 rounded text-[var(--color-ink-3)] hover:text-[var(--color-ink)] transition-colors"
+          aria-label="Cerrar menú"
+        >
+          <X size={16} strokeWidth={1.5} />
+        </button>
       </div>
 
       {/* Navegación */}
@@ -77,6 +90,7 @@ export function Sidebar({ user }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={close}
               className={`
                 group flex items-center gap-2.5 px-3 py-2.5 rounded-[var(--radius-sm)]
                 text-sm transition-all duration-150

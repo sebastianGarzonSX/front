@@ -1,7 +1,8 @@
 'use client'
 
 import { UserProfile } from '@/types'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, Menu } from 'lucide-react'
+import { useSidebar } from './SidebarContext'
 import { apiFetch } from '@/lib/api'
 import { useState, useEffect, useCallback } from 'react'
 
@@ -14,6 +15,7 @@ interface HeaderProps {
 
 export function Header({ title, subtitle, user, lastSynced }: HeaderProps) {
   const canSync = user.role === 'admin'
+  const { toggle } = useSidebar()
 
   const [syncing,  setSyncing]  = useState(false)
   const [syncMode, setSyncMode] = useState<'incremental' | 'full' | null>(null)
@@ -61,17 +63,28 @@ export function Header({ title, subtitle, user, lastSynced }: HeaderProps) {
   return (
     <header className="
       flex items-center justify-between
-      px-6 py-4
+      px-4 sm:px-6 py-4
       border-b border-[var(--color-border)]
       bg-[var(--color-surface)]
     ">
-      <div>
-        <h1 className="font-[var(--font-display)] text-xl font-semibold text-[var(--color-ink)] leading-none">
-          {title}
-        </h1>
-        {subtitle && (
-          <p className="mt-1 text-xs text-[var(--color-ink-2)]">{subtitle}</p>
-        )}
+      <div className="flex items-center gap-3">
+        {/* Hamburguesa — solo mobile */}
+        <button
+          onClick={toggle}
+          className="lg:hidden p-1.5 rounded text-[var(--color-ink-3)] hover:text-[var(--color-ink)] transition-colors"
+          aria-label="Abrir menú"
+        >
+          <Menu size={20} strokeWidth={1.5} />
+        </button>
+
+        <div>
+          <h1 className="font-[var(--font-display)] text-xl font-semibold text-[var(--color-ink)] leading-none">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="mt-1 text-xs text-[var(--color-ink-2)]">{subtitle}</p>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-4">

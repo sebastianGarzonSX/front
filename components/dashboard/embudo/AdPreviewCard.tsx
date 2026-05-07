@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Trophy, TrendingUp, DollarSign, MousePointerClick, Eye, Users } from 'lucide-react'
+import { Trophy, TrendingUp, DollarSign, MousePointerClick, Eye, Users, ChevronDown } from 'lucide-react'
 import { AdPreviewItem, MetaAdStatus } from '@/types'
 import { formatCurrency, formatNumber } from '@/components/dashboard/KPICard'
+import { CampaignOption } from '@/hooks/useCampaignList'
 
 // ── Status badge ──────────────────────────────────────────────────────────────
 
@@ -273,6 +274,185 @@ export function TopAdsTable({ ads, isLoading, canViewFinancials }: TopAdsTablePr
           </div>
         )
       })}
+    </div>
+  )
+}
+
+// ── Ranking por campaña (selector dedicado) ───────────────────────────────────
+
+interface AdsRankingPanelProps {
+  ads:               AdPreviewItem[]
+  campaigns:         CampaignOption[]
+  isLoading:         boolean
+  canViewFinancials: boolean
+}
+
+export function AdsRankingPanel({ ads, campaigns, isLoading, canViewFinancials }: AdsRankingPanelProps) {
+  const [selectedName, setSelectedName] = useState<string>('')
+
+  const filtered = selectedName
+    ? ads.filter((a) => a.campaign_name === selectedName)
+    : ads
+
+  const ranked = [...filtered]
+    .filter((a) => a.conversions > 0 && a.spend > 0)
+    .sort((a, b) => (a.spend / a.conversions) - (b.spend / b.conversions))
+    .slice(0, 10)
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        <div className="skeleton h-10 w-64 rounded-[var(--radius-sm)]" />
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="skeleton h-14 rounded-[var(--radius-md)]" />
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Selector de campaña */}
+      <div className="relative w-full sm:w-72">
+        <select
+          value={selectedName}
+          onChange={(e) => setSelectedName(e.target.value)}
+          className="
+            w-full appearance-none
+            px-4 py-2.5 pr-9
+            bg-[var(--color-surface-2)] border border-[var(--color-border-2)]
+            rounded-[var(--radius-sm)]
+            text-sm text-[var(--color-ink)]
+            font-[var(--font-mono)]
+            focus:outline-none focus:border-[var(--color-gold)]/60
+            transition-colors
+          "
+        >
+          <option value="">Todas las campañas</option>
+          {campaigns.map((c) => (
+            <option key={c.campaign_id} value={c.campaign_name}>
+              {c.campaign_name}
+            </option>
+          ))}
+        </select>
+        <ChevronDown
+          size={14}
+          className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--color-ink-3)]"
+        />
+      </div>
+
+      {/* Ranking */}
+      {ranked.length === 0 ? (
+        <div className="py-10 flex flex-col items-center gap-2">
+          <Trophy size={20} className="text-[var(--color-ink-3)]" />
+          <p className="text-sm text-[var(--color-ink-2)]">
+            {selectedName
+              ? 'Sin anuncios con conversiones en esta campaña.'
+              : 'Sin anuncios con conversiones en el período.'}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {ranked.map((ad, idx) => {
+            const cpl     = ad.spend / ad.conversions
+            const isMedal = idx < 3
+            return (
+              <div
+                key={`${ad.ad_id}-${idx}`}
+                className={`
+                  flex items-center gap-3 px-4 py-3 rounded-[var(--radius-md)]
+                  border transition-colors
+                  ${idx === 0
+                    ? 'border-[#D4AF37]/30 bg-[#D4AF37]/5'
+                    : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-2)]'}
+                `}
+              >
+                {/* Posición */}
+                <div
+                  className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold font-[var(--font-mono)]"
+                  style={isMedal
+                    ? { background: MEDAL_COLORS[idx] + '20', color: MEDAL_COLORS[idx], border: `1px solid ${MEDAL_COLORS[idx]}40` }
+                    : { background: 'var(--color-surface-2)', color: 'var(--color-ink-3)' }
+                  }
+                >
+                  {idx + 1}
+                </div>
+
+                {/* Thumbnail mini */}
+                <div className="w-10 h-10 flex-shrink-0 rounded overflow-hidden bg-[var(--color-surface-2)]">
+                  {ad.thumbnail_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={ad.thumbnail_url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Eye size={12} className="text-[var(--color-ink-3)]" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Nombre + campaña */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-[var(--color-ink)] truncate">{ad.ad_name}</p>
+                  {!selectedName && (
+                    <p className="text-[9px] font-[var(--font-mono)] text-[var(--color-ink-3)] truncate">{ad.campaign_name}</p>
+                  )}
+                </div>
+
+                {/* Métricas */}
+                <div className="flex items-center gap-4 flex-shrink-0">
+                  <div className="text-right">
+                    <p className="text-[8px] font-[var(--font-mono)] uppercase text-[var(--color-ink-3)] flex items-center gap-0.5 justify-end">
+                      <Users size={8} />Leads
+                    </p>
+                    <p className="text-xs font-bold font-[var(--font-mono)] text-[var(--color-ink)] tabular-nums">
+                      {formatNumber(ad.conversions)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[8px] font-[var(--font-mono)] uppercase text-[var(--color-ink-3)] flex items-center gap-0.5 justify-end">
+                      <MousePointerClick size={8} />CTR
+                    </p>
+                    <p className="text-xs font-bold font-[var(--font-mono)] text-[var(--color-ink)] tabular-nums">
+                      {ad.ctr > 0 ? `${ad.ctr.toFixed(2)}%` : '—'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[8px] font-[var(--font-mono)] uppercase text-[var(--color-ink-3)] flex items-center gap-0.5 justify-end">
+                      <TrendingUp size={8} />Clicks
+                    </p>
+                    <p className="text-xs font-bold font-[var(--font-mono)] text-[var(--color-ink)] tabular-nums">
+                      {formatNumber(ad.clicks)}
+                    </p>
+                  </div>
+                  {canViewFinancials && (
+                    <>
+                      <div className="text-right">
+                        <p className="text-[8px] font-[var(--font-mono)] uppercase text-[var(--color-ink-3)] flex items-center gap-0.5 justify-end">
+                          <DollarSign size={8} />Gasto
+                        </p>
+                        <p className="text-xs font-bold font-[var(--font-mono)] text-[var(--color-gold)] tabular-nums">
+                          {formatCurrency(ad.spend)}
+                        </p>
+                      </div>
+                      <div className="text-right min-w-[60px]">
+                        <p className="text-[8px] font-[var(--font-mono)] uppercase text-[var(--color-ink-3)]">CPL</p>
+                        <p className={`text-xs font-bold font-[var(--font-mono)] tabular-nums ${idx === 0 ? 'text-[#3DAB6E]' : 'text-[var(--color-ink)]'}`}>
+                          {formatCurrency(cpl)}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
