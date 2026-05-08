@@ -16,7 +16,7 @@ export function LpViewsPanel({ tag, totalLeads }: Props) {
   const [copied, setCopied]           = useState(false)
 
   const convPct = views && views > 0
-    ? ((totalLeads / views) * 100).toFixed(1)
+    ? ((totalLeads / views) * 100).toFixed(2)
     : null
 
   const dropoff = views && views > 0

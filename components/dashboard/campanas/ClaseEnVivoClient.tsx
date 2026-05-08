@@ -6,13 +6,14 @@ import { DateRangeSelector }        from './DateRangeSelector'
 import { EventSelector }            from './EventSelector'
 import { MetaVsGHL }                from './MetaVsGHL'
 import { ConversionFunnelLinear }   from './ConversionFunnelLinear'
-import { LeadMagnetPie }            from './LeadMagnetPie'
 import { FormResponseCharts }       from './FormResponseCharts'
 import { SessionsPurchases }        from './SessionsPurchases'
 import { LpViewsPanel }             from './LpViewsPanel'
-import { FalenciaPie }              from './FalenciaPie'
+import { FalenciaPie, isFalencia }  from './FalenciaPie'
+import { PixelEventsPanel }         from './PixelEventsPanel'
 import { useClaseReport }           from '@/hooks/useClaseReport'
 import { useEventTags }             from '@/hooks/useEventTags'
+import { usePixelEvents }           from '@/hooks/usePixelEvents'
 
 function today()            { return new Date().toISOString().slice(0, 10) }
 function daysAgo(n: number) { return new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10) }
@@ -52,6 +53,8 @@ export function ClaseEnVivoClient({ user: _user }: { user: UserProfile }) {
 
   const { tags, isLoading: tagsLoading }  = useEventTags()
   const { report, meta, isLoading, error } = useClaseReport(selectedTag, since, until)
+  const { data: pixelEvents, isLoading: pixelLoading, error: pixelError } =
+    usePixelEvents(selectedTag, since, until)
 
   const mainCampaign = meta?.campaigns?.[0] ?? null
 
@@ -160,8 +163,8 @@ export function ClaseEnVivoClient({ user: _user }: { user: UserProfile }) {
             </Card>
           </section>
 
-          {/* 4 ── Sesiones y Lead Magnet ─────────────────────────────────────── */}
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-up stagger-4">
+          {/* 4 ── Sesiones y compras ────────────────────────────────────────── */}
+          <section className="animate-fade-up stagger-4">
             <Card
               title="Sesiones y compras"
               subtitle="conversiones post-clase · agendamientos desde GHL Calendar"
@@ -172,16 +175,22 @@ export function ClaseEnVivoClient({ user: _user }: { user: UserProfile }) {
                 isLoading={isLoading}
                 since={since}
                 until={until}
+                tag={selectedTag}
               />
             </Card>
+          </section>
 
+          {/* 4.5 ── Pixel events (gracias-general.html) ──────────────────────── */}
+          <section className="animate-fade-up stagger-4">
+            <SectionLabel>Eventos del Pixel · gracias-general.html</SectionLabel>
             <Card
-              title="Lead Magnet"
-              subtitle="distribución por opción elegida (tags lm_*)"
+              title="Pixel · campañas [CLASE SEM]"
+              subtitle="Lead, CompleteRegistration, Contact y custom events disparados desde la página de gracias"
             >
-              <LeadMagnetPie
-                items={report?.lm_dist ?? []}
-                isLoading={isLoading}
+              <PixelEventsPanel
+                data={pixelEvents}
+                isLoading={pixelLoading}
+                error={pixelError}
               />
             </Card>
           </section>
@@ -195,7 +204,7 @@ export function ClaseEnVivoClient({ user: _user }: { user: UserProfile }) {
             >
               <FormResponseCharts
                 rows={(report?.custom_fields ?? []).filter(
-                  r => !r.field_name.toLowerCase().includes('falencia')
+                  r => !isFalencia(r.field_name)
                 )}
                 isLoading={isLoading}
               />

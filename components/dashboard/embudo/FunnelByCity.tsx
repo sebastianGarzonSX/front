@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { TrendingDown, TrendingUp, Thermometer, Target, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { FunnelByCityResponse, FunnelStageKey, PipelineType } from '@/types'
-import { formatCurrency, formatNumber } from '@/components/dashboard/KPICard'
+import { formatCurrency, formatCurrencyDecimal, formatNumber } from '@/components/dashboard/KPICard'
 import type { FunnelStep } from './Funnel3DCanvas'
 
 const Funnel3DCanvas = dynamic(() => import('./Funnel3DCanvas'), {
@@ -110,14 +110,14 @@ function StageList({
                          : step.convPct >= 20 ? 'var(--color-gold)'
                          : 'var(--color-red)',
                   }}>
-                  {step.convPct.toFixed(0)}%
+                  {step.convPct.toFixed(2)}%
                 </span>
               )}
             </div>
             {canViewFinancials && step.costPer && (
               <div className="pl-3.5 mt-0.5">
                 <span className="text-[9px] font-[var(--font-mono)] text-[var(--color-ink-3)]">
-                  {formatCurrency(step.costPer)} / lead
+                  {formatCurrencyDecimal(step.costPer)} / lead
                 </span>
               </div>
             )}
@@ -182,7 +182,7 @@ function StageDetail({
         </div>
         {step.pctTotal !== undefined && (
           <p className="text-[10px] font-[var(--font-mono)] text-[var(--color-ink-3)] mt-1">
-            {step.pctTotal.toFixed(1)}% del total
+            {step.pctTotal.toFixed(2)}% del total
           </p>
         )}
       </div>
@@ -218,7 +218,7 @@ function StageDetail({
                        : step.convPct >= 20 ? 'var(--color-gold)'
                        : 'var(--color-red)',
                 }}>
-                {step.convPct.toFixed(1)}%
+                {step.convPct.toFixed(2)}%
               </p>
               <TrendingUp size={12} className="text-[var(--color-ink-3)]" />
             </div>
@@ -234,7 +234,7 @@ function StageDetail({
               </p>
               <div className="flex items-baseline gap-1">
                 <p className="text-lg font-semibold font-[var(--font-display)] tabular-nums leading-none text-[var(--color-red)]">
-                  −{dropPct.toFixed(0)}%
+                  −{dropPct.toFixed(2)}%
                 </p>
                 <TrendingDown size={12} className="text-[var(--color-red)]/60" />
               </div>
@@ -254,7 +254,7 @@ function StageDetail({
           </p>
           <p className="text-2xl font-semibold font-[var(--font-display)] tabular-nums leading-none"
             style={{ color: '#C9973A' }}>
-            {formatCurrency(step.costPer)}
+            {formatCurrencyDecimal(step.costPer)}
           </p>
           <p className="text-[10px] font-[var(--font-mono)] text-[var(--color-ink-3)] mt-1">
             gasto Meta ÷ leads en este nivel
@@ -376,7 +376,7 @@ export function FunnelByCity({ data, isLoading, canViewFinancials }: FunnelByCit
               style={{ background: '#8B5CF622', color: '#8B5CF6' }}>÷</div>
             <p className="text-[9px] font-[var(--font-mono)] uppercase tracking-widest text-[var(--color-ink-3)]">CPL total</p>
             <p className="text-xl font-semibold font-[var(--font-display)] tabular-nums leading-none mt-1" style={{ color: '#8B5CF6' }}>
-              {formatCurrency(cplTotal)}
+              {formatCurrencyDecimal(cplTotal)}
             </p>
           </div>
         ) : <div />}

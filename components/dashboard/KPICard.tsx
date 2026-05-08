@@ -114,6 +114,16 @@ export function formatCurrency(n: number, currency = 'COP'): string {
   }).format(n)
 }
 
+/** Formatea un valor monetario con 2 decimales (uso para CPL, CPC, métricas unitarias) */
+export function formatCurrencyDecimal(n: number, currency = 'COP'): string {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n)
+}
+
 /** Calcula el delta % entre dos valores */
 export function calcDelta(current: number, previous: number): number {
   if (previous === 0) return current > 0 ? 100 : 0

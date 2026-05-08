@@ -135,11 +135,11 @@ export function ConversionFunnelLinear({ report, meta, isLoading }: ConversionFu
           const barY    = i * (BAR_H + CONN_H)
           const prev    = steps[i - 1]
           const convPct = prev && prev.count > 0
-            ? ((step.count / prev.count) * 100).toFixed(1)
+            ? ((step.count / prev.count) * 100).toFixed(2)
             : null
           const pctOfFirst = steps[0].count > 0
-            ? Math.round((step.count / steps[0].count) * 100)
-            : 0
+            ? ((step.count / steps[0].count) * 100).toFixed(2)
+            : '0'
           const costPer = spend > 0 && step.count > 0 ? spend / step.count : 0
 
           // Visible center x of this bar (midpoint of top edge)

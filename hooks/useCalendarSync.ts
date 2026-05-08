@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { CalendarConfigResponse, CalendarAppointmentsResponse } from '@/types'
 import { apiFetch } from '@/lib/api'
 
-export function useCalendarSync(since: string, until: string) {
+export function useCalendarSync(since: string, until: string, tag: string | null = null) {
   const [calendarId, setCalendarId]     = useState<string | null>(null)
   const [appointments, setAppointments] = useState<CalendarAppointmentsResponse | null>(null)
   const [isLoadingConfig, setLoadingConfig] = useState(true)
@@ -26,8 +26,9 @@ export function useCalendarSync(since: string, until: string) {
     setSyncing(true)
     setError(null)
     try {
+      const tagParam = tag ? `&tag=${encodeURIComponent(tag)}` : ''
       const res = await apiFetch(
-        `/api/clase/appointments?since=${since}&until=${until}`
+        `/api/clase/appointments?since=${since}&until=${until}${tagParam}`
       )
       if (!res.ok) throw new Error(`Error ${res.status}`)
       const data: CalendarAppointmentsResponse = await res.json()
@@ -37,7 +38,7 @@ export function useCalendarSync(since: string, until: string) {
     } finally {
       setSyncing(false)
     }
-  }, [since, until])
+  }, [since, until, tag])
 
   // Auto-sync cuando ya hay calendar configurado y cambian las fechas
   useEffect(() => {

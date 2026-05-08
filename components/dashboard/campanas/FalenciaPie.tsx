@@ -17,23 +17,26 @@ const PALETTE = [
 
 const FALENCIA_KEYS = ['falencia', 'principal_falencia', 'cuál es tu principal falencia']
 
-function isFalencia(name: string): boolean {
+export function isFalencia(name: string): boolean {
   const n = name.toLowerCase().trim()
   return FALENCIA_KEYS.some(k => n.includes(k))
 }
 
 export function FalenciaPie({ rows, isLoading }: Props) {
   const data = useMemo(() => {
-    return rows
+    const falencias = rows
       .filter(r => isFalencia(r.field_name))
       .sort((a, b) => b.count - a.count)
       .slice(0, 8)
-      .map((r, i) => ({
-        name:  r.field_value,
-        value: r.count,
-        pct:   r.pct,
-        color: PALETTE[i % PALETTE.length],
-      }))
+
+    const sampleTotal = falencias.reduce((s, r) => s + r.count, 0)
+
+    return falencias.map((r, i) => ({
+      name:  r.field_value,
+      value: r.count,
+      pct:   sampleTotal > 0 ? (r.count / sampleTotal) * 100 : 0,
+      color: PALETTE[i % PALETTE.length],
+    }))
   }, [rows])
 
   if (isLoading) {
@@ -81,7 +84,7 @@ export function FalenciaPie({ rows, isLoading }: Props) {
                 color: 'var(--color-ink)',
               }}
               formatter={(v, _n, item) => [
-                `${formatNumber(Number(v ?? 0))} (${(item.payload as { pct?: number })?.pct ?? 0}%)`,
+                `${formatNumber(Number(v ?? 0))} (${Number((item.payload as { pct?: number })?.pct ?? 0).toFixed(2)}%)`,
                 (item.payload as { name?: string })?.name ?? '',
               ]}
             />
@@ -107,7 +110,7 @@ export function FalenciaPie({ rows, isLoading }: Props) {
           </p>
           <p className="text-sm font-medium text-[var(--color-ink)] mt-1">{top.name}</p>
           <p className="text-[10px] text-[var(--color-ink-3)] font-[var(--font-mono)] mt-0.5">
-            {formatNumber(top.value)} de {formatNumber(total)} respuestas · <span style={{ color: top.color }}>{top.pct}%</span>
+            {formatNumber(top.value)} de {formatNumber(total)} respuestas · <span style={{ color: top.color }}>{Number(top.pct ?? 0).toFixed(2)}%</span>
           </p>
         </div>
 
@@ -117,7 +120,7 @@ export function FalenciaPie({ rows, isLoading }: Props) {
               <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: d.color }} />
               <span className="text-[var(--color-ink-2)] truncate flex-1" title={d.name}>{d.name}</span>
               <span className="font-[var(--font-mono)] text-[var(--color-ink-3)] tabular-nums">
-                {formatNumber(d.value)} · {d.pct}%
+                {formatNumber(d.value)} · {Number(d.pct ?? 0).toFixed(2)}%
               </span>
             </li>
           ))}

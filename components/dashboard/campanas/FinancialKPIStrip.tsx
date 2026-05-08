@@ -1,7 +1,7 @@
 'use client'
 
 import { AttributionReport } from '@/types'
-import { formatCurrency, formatNumber } from '@/components/dashboard/KPICard'
+import { formatCurrency, formatCurrencyDecimal, formatNumber } from '@/components/dashboard/KPICard'
 
 interface FinancialKPIStripProps {
   data:              AttributionReport | null
@@ -109,7 +109,7 @@ export function FinancialKPIStrip({ data, isLoading, canViewFinancials }: Financ
         />
         <Chip
           label="Tasa de conversión"
-          value={`${convRate.toFixed(1)}%`}
+          value={`${convRate.toFixed(2)}%`}
           sub={`${totalConv} de ${totalLeads} leads`}
           quality={convQuality(convRate)}
           isLoading={isLoading}
@@ -125,7 +125,7 @@ export function FinancialKPIStrip({ data, isLoading, canViewFinancials }: Financ
       {/* ROAS — métrica reina */}
       <Chip
         label="ROAS"
-        value={metaActive && roas > 0 ? `${roas.toFixed(1)}×` : '—'}
+        value={metaActive && roas > 0 ? `${roas.toFixed(2)}×` : '—'}
         sub={
           metaActive
             ? roas >= 3 ? 'Retorno excelente (≥3×)'
@@ -141,7 +141,7 @@ export function FinancialKPIStrip({ data, isLoading, canViewFinancials }: Financ
       {/* CPL */}
       <Chip
         label="Costo / Lead"
-        value={metaActive && cpl > 0 ? formatCurrency(cpl) : '—'}
+        value={metaActive && cpl > 0 ? formatCurrencyDecimal(cpl) : '—'}
         sub="Meta spend ÷ leads GHL"
         quality={metaActive ? cplQuality(cpl) : 'neutral'}
         isLoading={isLoading}
@@ -150,7 +150,7 @@ export function FinancialKPIStrip({ data, isLoading, canViewFinancials }: Financ
       {/* CPA / CAC */}
       <Chip
         label="Costo / Venta"
-        value={metaActive && cpa > 0 ? formatCurrency(cpa) : '—'}
+        value={metaActive && cpa > 0 ? formatCurrencyDecimal(cpa) : '—'}
         sub="Meta spend ÷ opp. ganadas"
         quality={metaActive && cpa > 0 ? (cpa < 300_000 ? 'star' : cpa < 800_000 ? 'ok' : 'warn') : 'neutral'}
         isLoading={isLoading}
@@ -172,7 +172,7 @@ export function FinancialKPIStrip({ data, isLoading, canViewFinancials }: Financ
       {/* Conv rate */}
       <Chip
         label="Tasa de conversión"
-        value={`${convRate.toFixed(1)}%`}
+        value={`${convRate.toFixed(2)}%`}
         sub={`${formatNumber(totalConv)} ventas de ${formatNumber(totalLeads)} leads`}
         quality={convQuality(convRate)}
         isLoading={isLoading}

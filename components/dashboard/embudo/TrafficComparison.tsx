@@ -1,7 +1,7 @@
 'use client'
 
 import { TrafficKPIsResponse } from '@/types'
-import { formatCurrency, formatNumber } from '@/components/dashboard/KPICard'
+import { formatCurrency, formatCurrencyDecimal, formatNumber } from '@/components/dashboard/KPICard'
 
 interface TrafficComparisonProps {
   data:              TrafficKPIsResponse | null
@@ -127,7 +127,7 @@ export function TrafficComparison({ data, isLoading, canViewFinancials }: Traffi
         {canViewFinancials && (
           <KpiCard
             label="CPL"
-            value={data.meta_cpl > 0 ? formatCurrency(data.meta_cpl) : '—'}
+            value={data.meta_cpl > 0 ? formatCurrencyDecimal(data.meta_cpl) : '—'}
             sub="costo por lead"
             color="#8B5CF6"
             icon="÷"
@@ -136,7 +136,7 @@ export function TrafficComparison({ data, isLoading, canViewFinancials }: Traffi
         {canViewFinancials && (
           <KpiCard
             label="CPC"
-            value={data.meta_cpc > 0 ? formatCurrency(data.meta_cpc) : '—'}
+            value={data.meta_cpc > 0 ? formatCurrencyDecimal(data.meta_cpc) : '—'}
             sub="costo por clic"
             color="#06B6D4"
             icon="⌖"
@@ -174,7 +174,7 @@ export function TrafficComparison({ data, isLoading, canViewFinancials }: Traffi
             <div className="space-y-0.5">
               <p className="text-[9px] font-[var(--font-mono)] uppercase tracking-widest text-[var(--color-ink-3)]">CPL real</p>
               <p className="text-2xl font-semibold font-[var(--font-display)] tabular-nums leading-none" style={{ color: '#8B5CF6' }}>
-                {data.crm_cpl > 0 ? formatCurrency(data.crm_cpl) : '—'}
+                {data.crm_cpl > 0 ? formatCurrencyDecimal(data.crm_cpl) : '—'}
               </p>
               <p className="text-[10px] text-[var(--color-ink-3)] font-[var(--font-mono)]">
                 {data.meta_spend > 0 && data.crm_leads > 0
@@ -188,7 +188,7 @@ export function TrafficComparison({ data, isLoading, canViewFinancials }: Traffi
         {/* Badge de variación — idéntico al gap badge de MetaVsGHL */}
         <div className="mt-3 pt-3 border-t border-[var(--color-border)] flex items-center gap-2 flex-wrap">
           <div className={`px-2 py-1 rounded text-[10px] font-semibold font-[var(--font-mono)] ${gapBgClass}`}>
-            {data.variation_pct > 0 ? '+' : ''}{data.variation_pct.toFixed(0)}% variación
+            {data.variation_pct > 0 ? '+' : ''}{data.variation_pct.toFixed(2)}% variación
           </div>
           <p className="text-[10px] text-[var(--color-ink-3)] font-[var(--font-mono)]">
             Meta reporta{' '}

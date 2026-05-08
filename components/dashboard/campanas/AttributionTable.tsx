@@ -1,7 +1,7 @@
 'use client'
 
 import { AttributionByAd } from '@/types'
-import { formatCurrency, formatNumber } from '@/components/dashboard/KPICard'
+import { formatCurrency, formatCurrencyDecimal, formatNumber } from '@/components/dashboard/KPICard'
 import { ArrowUpRight, Minus } from 'lucide-react'
 
 interface AttributionTableProps {
@@ -154,10 +154,10 @@ export function AttributionTable({
                       {row.meta_spend > 0 ? formatCurrency(row.meta_spend) : <Minus size={10} className="text-[var(--color-ink-3)]" />}
                     </td>
                     <td className="px-3 py-3 font-[var(--font-mono)] tabular-nums text-[var(--color-ink-2)]">
-                      {cplVal > 0 ? formatCurrency(cplVal) : <Minus size={10} className="text-[var(--color-ink-3)]" />}
+                      {cplVal > 0 ? formatCurrencyDecimal(cplVal) : <Minus size={10} className="text-[var(--color-ink-3)]" />}
                     </td>
                     <td className="px-3 py-3 font-[var(--font-mono)] tabular-nums text-[var(--color-ink-2)]">
-                      {cpcVal > 0 ? formatCurrency(cpcVal) : <Minus size={10} className="text-[var(--color-ink-3)]" />}
+                      {cpcVal > 0 ? formatCurrencyDecimal(cpcVal) : <Minus size={10} className="text-[var(--color-ink-3)]" />}
                     </td>
                     <td className="px-3 py-3">
                       {roasVal > 0 ? (
@@ -165,7 +165,7 @@ export function AttributionTable({
                           font-[var(--font-mono)] tabular-nums font-semibold
                           ${roasVal >= 3 ? 'text-[var(--color-green)]' : roasVal >= 1 ? 'text-[var(--color-gold)]' : 'text-[var(--color-red)]'}
                         `}>
-                          {roasVal.toFixed(1)}x
+                          {roasVal.toFixed(2)}x
                         </span>
                       ) : (
                         <Minus size={10} className="text-[var(--color-ink-3)]" />

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { AttributionByPipeline } from '@/types'
-import { formatNumber, formatCurrency } from '@/components/dashboard/KPICard'
+import { formatNumber, formatCurrency, formatCurrencyDecimal } from '@/components/dashboard/KPICard'
 
 interface PipelineFunnelProps {
   byPipeline:        AttributionByPipeline[]
@@ -30,7 +30,7 @@ function SingleFunnel({ stages, color, canViewFinancials, totalMetaSpend }: Sing
   const totalWon   = stages.reduce((s, r) => s + r.won, 0)
   const totalLost  = stages.reduce((s, r) => s + r.lost, 0)
   const totalValue = stages.reduce((s, r) => s + r.total_value, 0)
-  const convPct    = firstCount > 0 ? ((totalWon / firstCount) * 100).toFixed(1) : '0'
+  const convPct    = firstCount > 0 ? ((totalWon / firstCount) * 100).toFixed(2) : '0'
 
   return (
     <div className="space-y-0">
@@ -102,7 +102,7 @@ function SingleFunnel({ stages, color, canViewFinancials, totalMetaSpend }: Sing
                 {canViewFinancials && (
                   <span className="text-[10px] font-[var(--font-mono)] tabular-nums w-14 text-right flex-shrink-0"
                     style={{ color: costPerStage ? color : 'var(--color-ink-3)' }}>
-                    {costPerStage ? formatCurrency(costPerStage) : '—'}
+                    {costPerStage ? formatCurrencyDecimal(costPerStage) : '—'}
                   </span>
                 )}
               </div>

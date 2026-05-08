@@ -63,7 +63,7 @@ function FieldChart({ fieldName, values }: FieldChartProps) {
               color: 'var(--color-ink)',
             }}
             formatter={(value, _name, item) => [
-              `${formatNumber(Number(value ?? 0))} leads (${(item.payload as { pct?: number })?.pct ?? 0}%)`,
+              `${formatNumber(Number(value ?? 0))} leads (${Number((item.payload as { pct?: number })?.pct ?? 0).toFixed(2)}%)`,
               (item.payload as { full?: string })?.full ?? '',
             ]}
           />

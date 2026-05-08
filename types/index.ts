@@ -367,6 +367,7 @@ export interface CalendarAppointmentsResponse {
   calendar_id: string | null
   since:       string
   until:       string
+  tag?:        string | null
   items?:      AppointmentItem[]
 }
 
@@ -374,6 +375,31 @@ export interface MetaClaseData {
   campaigns: MetaCampaignRow[]
   since:     string
   until:     string
+}
+
+export interface PixelEventTotal {
+  key:      string
+  label:    string
+  count:    number
+  cost_per: number
+}
+
+export interface PixelEventCampaignRow {
+  campaign_id:   string
+  campaign_name: string
+  spend:         number
+  events:        Record<string, number>
+  raw_actions:   Record<string, number>
+}
+
+export interface PixelEventsResponse {
+  since:          string
+  until:          string
+  tag:            string | null
+  total_spend:    number
+  campaign_count: number
+  totals:         PixelEventTotal[]
+  by_campaign:    PixelEventCampaignRow[]
 }
 
 // ---------------------------------------------------------------------------

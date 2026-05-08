@@ -1,7 +1,7 @@
 'use client'
 
 import { MetaCampaignRow, ClaseReport } from '@/types'
-import { formatCurrency, formatNumber } from '@/components/dashboard/KPICard'
+import { formatCurrency, formatCurrencyDecimal, formatNumber } from '@/components/dashboard/KPICard'
 
 interface MetaVsGHLProps {
   report:    ClaseReport | null
@@ -108,14 +108,14 @@ export function MetaVsGHL({ report, meta, isLoading }: MetaVsGHLProps) {
         />
         <KpiCard
           label="CPL"
-          value={cplMeta > 0 ? formatCurrency(cplMeta) : '—'}
+          value={cplMeta > 0 ? formatCurrencyDecimal(cplMeta) : '—'}
           sub="costo por lead"
           color="#8B5CF6"
           icon="÷"
         />
         <KpiCard
           label="CPC"
-          value={meta?.cpc ? formatCurrency(meta.cpc) : '—'}
+          value={meta?.cpc ? formatCurrencyDecimal(meta.cpc) : '—'}
           sub="costo por clic"
           color="#06B6D4"
           icon="⌖"
@@ -152,7 +152,7 @@ export function MetaVsGHL({ report, meta, isLoading }: MetaVsGHLProps) {
           <div className="space-y-0.5">
             <p className="text-[9px] font-[var(--font-mono)] uppercase tracking-widest text-[var(--color-ink-3)]">CPL real</p>
             <p className="text-2xl font-semibold font-[var(--font-display)] tabular-nums leading-none" style={{ color: '#8B5CF6' }}>
-              {cplGHL > 0 ? formatCurrency(cplGHL) : '—'}
+              {cplGHL > 0 ? formatCurrencyDecimal(cplGHL) : '—'}
             </p>
             <p className="text-[10px] text-[var(--color-ink-3)] font-[var(--font-mono)]">
               {ghlLeads > 0 ? `÷ ${formatNumber(ghlLeads)} leads` : 'sin gasto Meta'}

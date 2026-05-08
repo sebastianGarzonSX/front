@@ -48,7 +48,7 @@ function RoasBadge({ roas }: { roas: number }) {
              : ok ? 'bg-[var(--color-gold-glow)] text-[var(--color-gold)]'
                   : 'bg-[#6B2626] text-[var(--color-red)]'}
     `}>
-      {roas.toFixed(1)}×
+      {roas.toFixed(2)}×
     </span>
   )
 }
@@ -356,7 +356,7 @@ export function CampaignRanking({
                         : row.conv_rate >= 5  ? 'text-[var(--color-gold)]'
                         : 'text-[var(--color-ink-2)]'}
                       `}>
-                        {row.conv_rate.toFixed(1)}%
+                        {row.conv_rate.toFixed(2)}%
                       </span>
                     )}
 

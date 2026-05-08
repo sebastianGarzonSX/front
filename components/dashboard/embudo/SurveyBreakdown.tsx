@@ -72,7 +72,7 @@ export function SurveyBreakdown({ data, isLoading }: SurveyBreakdownProps) {
                   {cat.label}
                 </p>
                 <span className="text-[10px] font-[var(--font-mono)] text-[var(--color-ink-3)] flex-shrink-0 ml-2">
-                  {cat.percentage.toFixed(0)}%
+                  {cat.percentage.toFixed(2)}%
                 </span>
               </div>
               <div className="h-1.5 bg-[var(--color-border)] rounded-full overflow-hidden">

@@ -1,7 +1,7 @@
 'use client'
 
 import { ClaseReport, MetaCampaignRow } from '@/types'
-import { formatCurrency, formatNumber } from '@/components/dashboard/KPICard'
+import { formatCurrency, formatCurrencyDecimal, formatNumber } from '@/components/dashboard/KPICard'
 import { Calendar, ShoppingBag, TrendingUp, DollarSign } from 'lucide-react'
 import { CalendarSyncPanel } from './CalendarSyncPanel'
 import { AppointmentsTimeline } from './AppointmentsTimeline'
@@ -13,6 +13,7 @@ interface SessionsPurchasesProps {
   isLoading: boolean
   since:     string
   until:     string
+  tag?:      string | null
 }
 
 interface MetricTileProps {
@@ -47,10 +48,10 @@ function MetricTile({ icon, label, value, sub, color = 'var(--color-gold)' }: Me
   )
 }
 
-export function SessionsPurchases({ report, meta, isLoading, since, until }: SessionsPurchasesProps) {
+export function SessionsPurchases({ report, meta, isLoading, since, until, tag = null }: SessionsPurchasesProps) {
   // Hook compartido entre el tile de Sesiones y el panel de calendario:
   // garantiza que ambos usen la misma fuente (agendamientos del calendario GHL).
-  const calSync = useCalendarSync(since, until)
+  const calSync = useCalendarSync(since, until, tag)
 
   if (isLoading) {
     return (
@@ -76,8 +77,8 @@ export function SessionsPurchases({ report, meta, isLoading, since, until }: Ses
     : report.sessions
   const sessionsSource = calendarReady ? 'agendamientos GHL' : 'CRM (tag)'
 
-  const sesConvRate   = totalLeads > 0  ? ((sessions  / totalLeads) * 100).toFixed(1)  : '0'
-  const buyConvRate   = sessions   > 0  ? ((purchases / sessions)  * 100).toFixed(1)  : '0'
+  const sesConvRate   = totalLeads > 0  ? ((sessions  / totalLeads) * 100).toFixed(2)  : '0'
+  const buyConvRate   = sessions   > 0  ? ((purchases / sessions)  * 100).toFixed(2)  : '0'
   const costPerSes    = spend > 0 && sessions  > 0 ? spend / sessions  : 0
   const costPerBuy    = spend > 0 && purchases > 0 ? spend / purchases : 0
 
@@ -99,7 +100,7 @@ export function SessionsPurchases({ report, meta, isLoading, since, until }: Ses
           <MetricTile
             icon={<DollarSign size={16} />}
             label="Costo / sesión"
-            value={costPerSes > 0 ? formatCurrency(costPerSes) : '—'}
+            value={costPerSes > 0 ? formatCurrencyDecimal(costPerSes) : '—'}
             sub={spend > 0 ? `${formatCurrency(spend)} gasto total` : 'sin datos de Meta'}
             color="var(--color-gold)"
           />
@@ -122,7 +123,7 @@ export function SessionsPurchases({ report, meta, isLoading, since, until }: Ses
           <MetricTile
             icon={<TrendingUp size={16} />}
             label="Costo / compra"
-            value={costPerBuy > 0 ? formatCurrency(costPerBuy) : '—'}
+            value={costPerBuy > 0 ? formatCurrencyDecimal(costPerBuy) : '—'}
             sub={report.revenue > 0 ? `${formatCurrency(report.revenue)} ingresos` : 'sin ingresos registrados'}
             color="var(--color-green)"
           />

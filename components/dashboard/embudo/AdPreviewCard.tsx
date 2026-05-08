@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Trophy, TrendingUp, DollarSign, MousePointerClick, Eye, Users, ChevronDown } from 'lucide-react'
 import { AdPreviewItem, MetaAdStatus } from '@/types'
-import { formatCurrency, formatNumber } from '@/components/dashboard/KPICard'
+import { formatCurrency, formatCurrencyDecimal, formatNumber } from '@/components/dashboard/KPICard'
 import { CampaignOption } from '@/hooks/useCampaignList'
 
 // ── Status badge ──────────────────────────────────────────────────────────────
@@ -128,7 +128,7 @@ export function AdPreviewCard({ ad, canViewFinancials }: AdPreviewCardProps) {
           <div className="flex items-center justify-between px-0.5">
             <p className="text-[9px] font-[var(--font-mono)] text-[var(--color-ink-3)] uppercase tracking-wider">CPL</p>
             <p className="text-[10px] font-semibold font-[var(--font-mono)] text-[var(--color-ink)] tabular-nums">
-              {formatCurrency(ad.cpl)}
+              {formatCurrencyDecimal(ad.cpl)}
             </p>
           </div>
         )}
@@ -265,7 +265,7 @@ export function TopAdsTable({ ads, isLoading, canViewFinancials }: TopAdsTablePr
                   <div className="text-right min-w-[60px]">
                     <p className="text-[8px] font-[var(--font-mono)] uppercase text-[var(--color-ink-3)]">CPL</p>
                     <p className={`text-xs font-bold font-[var(--font-mono)] tabular-nums ${idx === 0 ? 'text-[#3DAB6E]' : 'text-[var(--color-ink)]'}`}>
-                      {formatCurrency(cpl)}
+                      {formatCurrencyDecimal(cpl)}
                     </p>
                   </div>
                 </>
@@ -442,7 +442,7 @@ export function AdsRankingPanel({ ads, campaigns, isLoading, canViewFinancials }
                       <div className="text-right min-w-[60px]">
                         <p className="text-[8px] font-[var(--font-mono)] uppercase text-[var(--color-ink-3)]">CPL</p>
                         <p className={`text-xs font-bold font-[var(--font-mono)] tabular-nums ${idx === 0 ? 'text-[#3DAB6E]' : 'text-[var(--color-ink)]'}`}>
-                          {formatCurrency(cpl)}
+                          {formatCurrencyDecimal(cpl)}
                         </p>
                       </div>
                     </>
