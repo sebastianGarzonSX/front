@@ -16,19 +16,25 @@ function today()            { return new Date().toISOString().slice(0, 10) }
 function daysAgo(n: number) { return new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10) }
 
 interface CardProps {
-  title:     string
-  subtitle?: string
-  children:  React.ReactNode
-  className?: string
+  title:        string
+  subtitle?:    string
+  headerExtra?: React.ReactNode
+  children:     React.ReactNode
+  className?:   string
 }
-function Card({ title, subtitle, children, className = '' }: CardProps) {
+function Card({ title, subtitle, headerExtra, children, className = '' }: CardProps) {
   return (
     <div className={`bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-md)] overflow-hidden ${className}`}>
       <div className="px-5 py-3.5 border-b border-[var(--color-border)]">
-        <p className="text-sm font-medium text-[var(--color-ink)]">{title}</p>
-        {subtitle && (
-          <p className="text-[10px] text-[var(--color-ink-3)] mt-0.5 font-[var(--font-mono)]">{subtitle}</p>
-        )}
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-[var(--color-ink)]">{title}</p>
+            {subtitle && (
+              <p className="text-[10px] text-[var(--color-ink-3)] mt-0.5 font-[var(--font-mono)]">{subtitle}</p>
+            )}
+          </div>
+          {headerExtra}
+        </div>
       </div>
       <div className="p-5">{children}</div>
     </div>
@@ -131,8 +137,31 @@ export function ClaseEnVivoClient({ user: _user }: { user: UserProfile }) {
               title="Respuestas"
               subtitle={
                 responsePct !== null
-                  ? `${responsePct}% de los leads respondieron · ${falenciaTotal} de ${totalLeads}`
+                  ? `${falenciaTotal} de ${totalLeads} leads respondieron · contact.falencia`
                   : 'custom field contact.falencia · qué dolor declara cada lead'
+              }
+              headerExtra={
+                responsePct !== null ? (
+                  <div className="flex flex-col items-end gap-1.5 shrink-0">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-semibold font-[var(--font-display)] text-[var(--color-gold)] tabular-nums leading-none">
+                        {responsePct}%
+                      </span>
+                    </div>
+                    <div className="w-28 h-1 bg-[var(--color-border-2)] rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{
+                          width: `${Math.min(Number(responsePct), 100)}%`,
+                          background: 'var(--color-gold)',
+                        }}
+                      />
+                    </div>
+                    <p className="text-[9px] font-[var(--font-mono)] text-[var(--color-ink-3)]">
+                      respondieron
+                    </p>
+                  </div>
+                ) : undefined
               }
             >
               <FalenciaPie
@@ -174,18 +203,19 @@ export function ClaseEnVivoClient({ user: _user }: { user: UserProfile }) {
             </Card>
           </section>
 
-          {/* 5 ── Resto de respuestas del formulario (secundario) ────────────── */}
+          {/* 5 ── Participación por pregunta del formulario ──────────────────── */}
           <section className="animate-fade-up stagger-5">
-            <SectionLabel>Otras respuestas del formulario (custom fields)</SectionLabel>
+            <SectionLabel>Participación por pregunta (custom fields)</SectionLabel>
             <Card
-              title="Distribución por pregunta"
-              subtitle="agrupado por pregunta · ordenado por frecuencia"
+              title="Tasa de respuesta por campo"
+              subtitle="cuántos leads respondieron cada pregunta · sin mostrar contenido personal"
             >
               <FormResponseCharts
                 rows={(report?.custom_fields ?? []).filter(
                   r => !isFalencia(r.field_name)
                 )}
                 isLoading={isLoading}
+                totalLeads={totalLeads}
               />
             </Card>
           </section>

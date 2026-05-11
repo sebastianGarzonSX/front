@@ -1,97 +1,55 @@
 'use client'
 
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { useMemo } from 'react'
 import { CustomFieldRow } from '@/types'
 import { formatNumber } from '@/components/dashboard/KPICard'
+import { MessageSquare } from 'lucide-react'
 
 interface FormResponseChartsProps {
-  rows:      CustomFieldRow[]
-  isLoading: boolean
+  rows:        CustomFieldRow[]
+  isLoading:   boolean
+  totalLeads?: number
 }
 
-const BAR_COLOR = '#C9973A'
+interface FieldStat {
+  field_name:    string
+  respondents:   number
+  unique_values: number
+  pct:           number
+}
 
-// Agrupar por field_name
-function groupByField(rows: CustomFieldRow[]): Record<string, CustomFieldRow[]> {
-  const map: Record<string, CustomFieldRow[]> = {}
+function buildFieldStats(rows: CustomFieldRow[], totalLeads: number): FieldStat[] {
+  const map = new Map<string, { sum: number; values: Set<string> }>()
   for (const row of rows) {
-    if (!map[row.field_name]) map[row.field_name] = []
-    map[row.field_name].push(row)
+    const entry = map.get(row.field_name) ?? { sum: 0, values: new Set() }
+    entry.sum += row.count
+    entry.values.add(row.field_value)
+    map.set(row.field_name, entry)
   }
-  return map
-}
-
-interface FieldChartProps {
-  fieldName: string
-  values:    CustomFieldRow[]
-}
-
-function FieldChart({ fieldName, values }: FieldChartProps) {
-  const data = values
-    .slice(0, 8) // máximo 8 opciones por campo
-    .map((v) => ({
-      name:  v.field_value.length > 28 ? v.field_value.slice(0, 26) + '…' : v.field_value,
-      full:  v.field_value,
-      count: v.count,
-      pct:   v.pct,
+  return [...map.entries()]
+    .map(([field_name, { sum, values }]) => ({
+      field_name,
+      respondents:   sum,
+      unique_values: values.size,
+      pct:           totalLeads > 0 ? (sum / totalLeads) * 100 : 0,
     }))
-
-  return (
-    <div className="space-y-2">
-      <p className="text-xs font-medium text-[var(--color-ink)]">{fieldName}</p>
-      <ResponsiveContainer width="100%" height={Math.max(data.length * 28, 80)}>
-        <BarChart
-          data={data}
-          layout="vertical"
-          margin={{ top: 0, right: 40, left: 4, bottom: 0 }}
-        >
-          <XAxis type="number" hide />
-          <YAxis
-            type="category"
-            dataKey="name"
-            width={120}
-            tick={{ fontSize: 10, fill: 'var(--color-ink-2)', fontFamily: 'var(--font-mono)' }}
-            tickLine={false}
-            axisLine={false}
-          />
-          <Tooltip
-            contentStyle={{
-              background: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '6px',
-              fontSize: '11px',
-              color: 'var(--color-ink)',
-            }}
-            formatter={(value, _name, item) => [
-              `${formatNumber(Number(value ?? 0))} leads (${Number((item.payload as { pct?: number })?.pct ?? 0).toFixed(2)}%)`,
-              (item.payload as { full?: string })?.full ?? '',
-            ]}
-          />
-          <Bar dataKey="count" radius={[0, 3, 3, 0]} barSize={14}>
-            {data.map((_, i) => (
-              <Cell
-                key={i}
-                fill={BAR_COLOR}
-                fillOpacity={1 - (i / data.length) * 0.5}
-              />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-  )
+    .sort((a, b) => b.respondents - a.respondents)
 }
 
-export function FormResponseCharts({ rows, isLoading }: FormResponseChartsProps) {
+export function FormResponseCharts({ rows, isLoading, totalLeads = 0 }: FormResponseChartsProps) {
+  const stats = useMemo(() => buildFieldStats(rows, totalLeads), [rows, totalLeads])
+
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[1, 2].map((i) => <div key={i} className="skeleton h-40 rounded-[var(--radius-md)]" />)}
+      <div className="space-y-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="skeleton h-12 rounded-[var(--radius-sm)]" />
+        ))}
       </div>
     )
   }
 
-  if (rows.length === 0) {
+  if (stats.length === 0) {
     return (
       <div className="text-center py-8">
         <p className="text-xs text-[var(--color-ink-3)]">Sin respuestas de formulario</p>
@@ -102,14 +60,98 @@ export function FormResponseCharts({ rows, isLoading }: FormResponseChartsProps)
     )
   }
 
-  const grouped = groupByField(rows)
-  const fields  = Object.entries(grouped)
+  const maxPct = Math.max(...stats.map((s) => s.pct), 1)
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      {fields.map(([fieldName, values]) => (
-        <FieldChart key={fieldName} fieldName={fieldName} values={values} />
-      ))}
+    <div className="space-y-2">
+      {/* Header */}
+      <div className="grid grid-cols-[1fr_auto_auto] gap-3 px-1 mb-3">
+        <p className="text-[9px] font-[var(--font-mono)] uppercase tracking-widest text-[var(--color-ink-3)]">
+          Pregunta
+        </p>
+        <p className="text-[9px] font-[var(--font-mono)] uppercase tracking-widest text-[var(--color-ink-3)] text-right">
+          Respuestas
+        </p>
+        <p className="text-[9px] font-[var(--font-mono)] uppercase tracking-widest text-[var(--color-ink-3)] text-right w-14">
+          Tasa
+        </p>
+      </div>
+
+      {/* Filas */}
+      {stats.map((s) => {
+        const barWidth = maxPct > 0 ? (s.pct / maxPct) * 100 : 0
+        const isHigh   = s.pct >= 70
+        const isMid    = s.pct >= 40 && s.pct < 70
+
+        return (
+          <div
+            key={s.field_name}
+            className="relative rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden px-3 py-2.5"
+          >
+            {/* Barra de fondo */}
+            <div
+              className="absolute inset-y-0 left-0 transition-all duration-500"
+              style={{
+                width:      `${barWidth}%`,
+                background: isHigh
+                  ? 'var(--color-green)/12'
+                  : isMid
+                    ? 'var(--color-gold-glow)'
+                    : 'var(--color-surface-2)',
+                opacity: 0.6,
+              }}
+            />
+
+            {/* Contenido */}
+            <div className="relative grid grid-cols-[1fr_auto_auto] gap-3 items-center">
+              {/* Nombre del campo */}
+              <div className="flex items-center gap-2 min-w-0">
+                <MessageSquare
+                  size={12}
+                  className="flex-shrink-0 text-[var(--color-ink-3)]"
+                />
+                <p className="text-xs text-[var(--color-ink)] truncate" title={s.field_name}>
+                  {s.field_name}
+                </p>
+              </div>
+
+              {/* Respondentes + únicos */}
+              <div className="text-right flex-shrink-0">
+                <p className="text-xs font-[var(--font-mono)] font-semibold text-[var(--color-ink)] tabular-nums">
+                  {formatNumber(s.respondents)}
+                </p>
+                {s.unique_values > 1 && (
+                  <p className="text-[9px] font-[var(--font-mono)] text-[var(--color-ink-3)]">
+                    {s.unique_values} distintas
+                  </p>
+                )}
+              </div>
+
+              {/* Tasa */}
+              <div className="text-right flex-shrink-0 w-14">
+                <p
+                  className="text-xs font-[var(--font-mono)] font-semibold tabular-nums"
+                  style={{
+                    color: isHigh
+                      ? 'var(--color-green)'
+                      : isMid
+                        ? 'var(--color-gold)'
+                        : 'var(--color-ink-2)',
+                  }}
+                >
+                  {s.pct.toFixed(1)}%
+                </p>
+              </div>
+            </div>
+          </div>
+        )
+      })}
+
+      {totalLeads > 0 && (
+        <p className="text-[10px] font-[var(--font-mono)] text-[var(--color-ink-3)] pt-1">
+          Tasa calculada sobre {formatNumber(totalLeads)} leads de la clase
+        </p>
+      )}
     </div>
   )
 }

@@ -4,7 +4,12 @@ import { useState, useEffect, useCallback } from 'react'
 import { PixelEventsResponse } from '@/types'
 import { apiFetch } from '@/lib/api'
 
-export function usePixelEvents(tag: string | null, since: string, until: string) {
+export function usePixelEvents(
+  tag:       string | null,
+  since:     string,
+  until:     string,
+  accountId: string | null = null,
+) {
   const [data, setData]         = useState<PixelEventsResponse | null>(null)
   const [isLoading, setLoading] = useState(false)
   const [error, setError]       = useState<string | null>(null)
@@ -13,8 +18,11 @@ export function usePixelEvents(tag: string | null, since: string, until: string)
     setLoading(true)
     setError(null)
     try {
-      const tagParam = tag ? `&tag=${encodeURIComponent(tag)}` : ''
-      const res = await apiFetch(`/api/clase/pixel-events?since=${since}&until=${until}${tagParam}`)
+      const tagParam     = tag       ? `&tag=${encodeURIComponent(tag)}`             : ''
+      const accountParam = accountId ? `&account_id=${encodeURIComponent(accountId)}` : ''
+      const res = await apiFetch(
+        `/api/clase/pixel-events?since=${since}&until=${until}${tagParam}${accountParam}`
+      )
       if (!res.ok) throw new Error(`Error ${res.status}`)
       setData(await res.json())
     } catch (err) {
@@ -23,7 +31,7 @@ export function usePixelEvents(tag: string | null, since: string, until: string)
     } finally {
       setLoading(false)
     }
-  }, [tag, since, until])
+  }, [tag, since, until, accountId])
 
   useEffect(() => { fetch_() }, [fetch_])
 
