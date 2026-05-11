@@ -8,12 +8,9 @@ import { MetaVsGHL }                from './MetaVsGHL'
 import { ConversionFunnelLinear }   from './ConversionFunnelLinear'
 import { FormResponseCharts }       from './FormResponseCharts'
 import { SessionsPurchases }        from './SessionsPurchases'
-import { LpViewsPanel }             from './LpViewsPanel'
 import { FalenciaPie, isFalencia }  from './FalenciaPie'
-import { PixelEventsPanel }         from './PixelEventsPanel'
 import { useClaseReport }           from '@/hooks/useClaseReport'
 import { useEventTags }             from '@/hooks/useEventTags'
-import { usePixelEvents }           from '@/hooks/usePixelEvents'
 
 function today()            { return new Date().toISOString().slice(0, 10) }
 function daysAgo(n: number) { return new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10) }
@@ -53,12 +50,15 @@ export function ClaseEnVivoClient({ user: _user }: { user: UserProfile }) {
 
   const { tags, isLoading: tagsLoading }  = useEventTags()
   const { report, meta, isLoading, error } = useClaseReport(selectedTag, since, until)
-  const { data: pixelEvents, isLoading: pixelLoading, error: pixelError } =
-    usePixelEvents(selectedTag, since, until)
 
   const mainCampaign = meta?.campaigns?.[0] ?? null
 
   const claseTags = tags.filter((t) => t.tag.toLowerCase().startsWith('clase'))
+
+  const falenciaRows  = (report?.custom_fields ?? []).filter(r => isFalencia(r.field_name))
+  const falenciaTotal = falenciaRows.reduce((s, r) => s + r.count, 0)
+  const totalLeads    = report?.total_leads ?? 0
+  const responsePct   = totalLeads > 0 ? ((falenciaTotal / totalLeads) * 100).toFixed(1) : null
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-5">
@@ -124,28 +124,22 @@ export function ClaseEnVivoClient({ user: _user }: { user: UserProfile }) {
             />
           </section>
 
-          {/* 2 ── Visitas a la landing (flujo 2) + Falencia principal ──────── */}
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-fade-up stagger-2">
-            <div className="lg:col-span-1 space-y-4">
-              <SectionLabel>Tráfico a la landing — flujo 2</SectionLabel>
-              <LpViewsPanel
-                tag={selectedTag}
-                totalLeads={report?.total_leads ?? 0}
+          {/* 2 ── Respuestas del formulario ─────────────────────────────────── */}
+          <section className="animate-fade-up stagger-2">
+            <SectionLabel>Respuestas del formulario</SectionLabel>
+            <Card
+              title="Respuestas"
+              subtitle={
+                responsePct !== null
+                  ? `${responsePct}% de los leads respondieron · ${falenciaTotal} de ${totalLeads}`
+                  : 'custom field contact.falencia · qué dolor declara cada lead'
+              }
+            >
+              <FalenciaPie
+                rows={report?.custom_fields ?? []}
+                isLoading={isLoading}
               />
-            </div>
-
-            <div className="lg:col-span-2">
-              <SectionLabel>Principal falencia reportada en el formulario</SectionLabel>
-              <Card
-                title="Falencia"
-                subtitle="custom field contact.falencia · qué dolor declara cada lead"
-              >
-                <FalenciaPie
-                  rows={report?.custom_fields ?? []}
-                  isLoading={isLoading}
-                />
-              </Card>
-            </div>
+            </Card>
           </section>
 
           {/* 3 ── Funnel — dos flujos: WhatsApp (api) + Landing page ────────── */}
@@ -176,21 +170,6 @@ export function ClaseEnVivoClient({ user: _user }: { user: UserProfile }) {
                 since={since}
                 until={until}
                 tag={selectedTag}
-              />
-            </Card>
-          </section>
-
-          {/* 4.5 ── Pixel events (gracias-general.html) ──────────────────────── */}
-          <section className="animate-fade-up stagger-4">
-            <SectionLabel>Eventos del Pixel · gracias-general.html</SectionLabel>
-            <Card
-              title="Pixel · campañas [CLASE SEM]"
-              subtitle="Lead, CompleteRegistration, Contact y custom events disparados desde la página de gracias"
-            >
-              <PixelEventsPanel
-                data={pixelEvents}
-                isLoading={pixelLoading}
-                error={pixelError}
               />
             </Card>
           </section>

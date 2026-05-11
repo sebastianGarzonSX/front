@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Link2,
   MapPin,
+  Cpu,
   X,
 } from 'lucide-react'
 import { useSidebar } from './SidebarContext'
@@ -31,6 +32,11 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Embudo por Ciudad',
     href: '/dashboard/embudo',
     icon: <MapPin size={16} strokeWidth={1.5} />,
+  },
+  {
+    label: 'Gestión de Píxeles',
+    href: '/dashboard/pixeles',
+    icon: <Cpu size={16} strokeWidth={1.5} />,
   },
   {
     label: 'Generador UTM',
